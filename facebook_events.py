@@ -15,12 +15,12 @@ class FacebookEventScraper:
         event_dict = self.__graph.get_object(event_id, fields="place,name,description,start_time,end_time,ticket_uri")
 
         event = Event()
-        event.description = event_dict["description"]
-        event.title = event_dict["name"]
-        event.place = event_dict["place"]["name"]  # coordinates and id also available
-        event.start_time = event_dict["start_time"]
+        event.description = event_dict.get("description")
+        event.title = event_dict.get("name")
+        event.place = event_dict.get("place", {}).get("name")  # coordinates and id also available
+        event.start_time = event_dict.get("start_time")
         event.end_time = event_dict.get("end_time")
-        event.uri = "https://www.facebook.com/events/" + event_dict["id"]
+        event.uri = "https://www.facebook.com/events/" + event_dict.get("id")
         event.ticket_uri = event_dict.get("ticket_uri")
         return event
 
