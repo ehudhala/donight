@@ -15,7 +15,7 @@ class FacebookEventScraper:
     def scrape(self, event_id):
         event_dict = self.__graph.get_object(
             event_id,
-            fields="place,name,description,start_time,end_time,ticket_uri,can_guests_invite")
+            fields="place,name,description,start_time,end_time,ticket_uri,can_guests_invite,cover")
 
         event = Event()
         event.description = event_dict.get("description")
@@ -26,6 +26,7 @@ class FacebookEventScraper:
         event.uri = "https://www.facebook.com/events/" + event_dict.get("id")
         event.ticket_uri = event_dict.get("ticket_uri")
         event.can_guests_invite = event_dict.get("can_guests_invite")  # TODO what if false?
+        event.image_uri = event_dict.get("cover", {}).get("source")
         return event
 
 
