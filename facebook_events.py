@@ -6,6 +6,14 @@ class Event:
         return repr(self.__dict__)
 
 
+class FacebookEventsScraper:
+    def __init__(self, access_token):
+        self.__access_token = access_token
+
+    def scrape(self):
+        pass
+
+
 class FacebookEventScraper:
     """docs at https://developers.facebook.com/docs/graph-api/reference/event/"""
 
@@ -23,7 +31,7 @@ class FacebookEventScraper:
         event.place_name = event_dict.get("place", {}).get("name")  # coordinates and id also available
         event.start_time = event_dict.get("start_time")
         event.end_time = event_dict.get("end_time")
-        event.uri = "https://www.facebook.com/events/" + event_dict.get("id")
+        event.uri = "https://www.facebook.com/events/" + event_dict.get("id", event_id)
         event.ticket_uri = event_dict.get("ticket_uri")
         event.can_guests_invite = event_dict.get("can_guests_invite")  # TODO what if false?
         event.image_uri = event_dict.get("cover", {}).get("source")
