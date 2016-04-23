@@ -22,7 +22,8 @@ class Event(Base):
 
     id = Column(Integer, Sequence('event_id_sequence'), primary_key=True)
     title = Column(String(MEDIUM_STR_LEN))
-    time = Column(DateTime)
+    time = Column(DateTime)  # TODO rename to start_time?
+    end_time = Column(DateTime)
     location = Column(String(MEDIUM_STR_LEN))
     price = Column(String(MEDIUM_STR_LEN))
     url = Column(String(MEDIUM_STR_LEN))

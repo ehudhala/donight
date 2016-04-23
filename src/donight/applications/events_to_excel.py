@@ -1,5 +1,4 @@
 from itertools import groupby
-
 from pyexcelerate import Workbook
 from sqlalchemy.inspection import inspect
 
@@ -50,4 +49,3 @@ class EventsExcel(object):
         :rtype: list
         """
         return [unicode(getattr(event, attr)) for attr in attributes]
-

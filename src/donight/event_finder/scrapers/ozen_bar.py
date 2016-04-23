@@ -115,4 +115,3 @@ class OzenBarScraper(BaseScraper):
         hour, minute = map(int, full_time.split(TIME_SEPERATOR))
 
         return dt.datetime(year, month, day, hour, minute)
-
