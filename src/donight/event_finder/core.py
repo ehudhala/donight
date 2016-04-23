@@ -66,7 +66,7 @@ class EventFinder(object):
             return scraper.scrape()
         except Exception as e:
             # TODO: log something here
-            print 'Exception: ', e
+            print('Exception: ', e)
             return list()
 
     def get_similar_event(self, event):

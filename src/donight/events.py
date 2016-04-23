@@ -8,6 +8,7 @@ MEDIUM_STR_LEN = 1024
 
 Base = declarative_base()
 
+
 # TODO: inheritance with polymorphism (we want shows, lectures and such to be different)
 class Event(Base):
     """
@@ -19,7 +20,7 @@ class Event(Base):
     """
     __tablename__ = 'events'
 
-    id = Column(Integer, Sequence('event_id_sequence'),primary_key=True)
+    id = Column(Integer, Sequence('event_id_sequence'), primary_key=True)
     title = Column(String(MEDIUM_STR_LEN))
     time = Column(DateTime)
     location = Column(String(MEDIUM_STR_LEN))
@@ -29,7 +30,7 @@ class Event(Base):
     image = Column(String(MEDIUM_STR_LEN))
 
     def __repr__(self):
-       return u'{0} at {1} @ {2}'.format(self.title, self.location, self.time)
+        return u'{0} at {1} @ {2}'.format(self.title, self.location, self.time)
 
 
 engine = create_engine('sqlite:///{0}'.format(DB_PATH))
