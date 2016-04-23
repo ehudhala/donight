@@ -1,9 +1,9 @@
 from itertools import groupby
 
 from pyexcelerate import Workbook
-from sqlalchemy.inspection import inspect
 
 from donight.events import Event
+from donight.utils import get_model_fields
 
 
 class EventsExcel(object):
@@ -11,8 +11,7 @@ class EventsExcel(object):
     Used to turn information about events into an excel spreadsheet.
     """
     EXCLUDED_FIELDS = ['id']
-    FIELD_NAMES = [unicode(column.key) for column in inspect(Event).mapper.columns
-                   if column.key not in EXCLUDED_FIELDS]
+    FIELD_NAMES = get_model_fields(Event, EXCLUDED_FIELDS)
 
     def create_excel(self, events, events_file_name):
         """
