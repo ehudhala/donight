@@ -48,12 +48,14 @@ class Levontin7Scraper(Scraper):
         :rtype: Event
         """
         try:
-            start_time = dt.datetime.strptime(levontin_event['start'], self.TIME_FORMAT)
+            start_time = self.levontin_time_to_time(levontin_event['start'])
+            end_time = self.levontin_time_to_time(levontin_event['end'])
             description = self.remove_line_breaks_from_description(levontin_event['description'])
             price = self.get_price_from_description(description)
             image = levontin_event['image'][0] if levontin_event['image'] else ''
             return Event(title=levontin_event['title'],
-                         time=start_time,
+                         start_time=start_time,
+                         end_time=end_time,
                          location=self.LEVONTIN_LOCATION,
                          price=price,
                          url=levontin_event['url'],
@@ -106,4 +108,14 @@ class Levontin7Scraper(Scraper):
         """
         # TODO: remove all html elements, leave only text.
         return description.replace('<br>\n', '').replace('<br>', '')
+
+    def levontin_time_to_time(self, levontin_time):
+        """
+        Creates a datetime object from a string describing time in a levontin event.
+        :param levontin_time: The time string from a levontin event.
+        :type levontin_time: str
+        :return: A datetime object of that time.
+        :rtype: datetime.datetime
+        """
+        return dt.datetime.strptime(levontin_time, self.TIME_FORMAT)
 
