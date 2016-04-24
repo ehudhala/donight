@@ -1,5 +1,4 @@
 from itertools import groupby
-
 from pyexcelerate import Workbook
 
 from donight.events import Event
@@ -49,4 +48,3 @@ class EventsExcel(object):
         :rtype: list
         """
         return [unicode(getattr(event, attr)) for attr in attributes]
-
