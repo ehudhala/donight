@@ -1,6 +1,6 @@
 import time
 
-from selenium.common.exceptions import NoSuchElementException
+from sqlalchemy import inspect
 
 SECONDS_IN_DAY = 24 * 60 * 60
 SECONDS_IN_MONTH = 30 * SECONDS_IN_DAY
@@ -32,6 +32,20 @@ def find(iterable, condition, default=None):
     :return: The first item in the iterable to pass the condition.
     """
     return next((item for item in iterable if condition(item)), default)
+
+
+def get_model_fields(model, excluded_fields=list()):
+    """
+    Returns a list of all the fields an sqlalchemy model has.
+    :param model: The model to get the fields of.
+    :type model: Base
+    :param excluded_fields: A list of fields not to include, even if they exist.
+    :type excluded_fields: list(str)
+    :return: A list of all the fields of the model.
+    :rtype: list(str)
+    """
+    return [unicode(column.key) for column in inspect(model).mapper.columns
+            if column.key not in excluded_fields]
 
 
 class Counter(object):

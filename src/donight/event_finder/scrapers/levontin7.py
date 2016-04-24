@@ -4,12 +4,12 @@ import time
 
 import requests
 
-from donight.event_finder.scrapers.base_scraper import BaseScraper
+from donight.event_finder.scrapers.base_scraper import Scraper
 from donight.events import Event
 from donight.utils import SECONDS_IN_MONTH, SECONDS_IN_YEAR, find
 
 
-class Levontin7Scraper(BaseScraper):
+class Levontin7Scraper(Scraper):
     """
     This scraper is used to scrape indie music shows from the Levontin 7 website.
     """
@@ -59,8 +59,9 @@ class Levontin7Scraper(BaseScraper):
                          url=levontin_event['url'],
                          description=description,
                          image=image)
-        except Exception as e:
-            # TODO: log
+        except Exception:
+            self.logger.exception("Failed turning a Levontin event into an event, "
+                                  "the Levontin event is: \n%s\nException:", json.dumps(levontin_event, indent=4))
             return None
 
     def get_price_from_description(self, description):

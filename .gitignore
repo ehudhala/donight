@@ -106,3 +106,10 @@ com_crashlytics_export_strings.xml
 crashlytics.properties
 crashlytics-build.properties
 fabric.properties
+
+# Customized
+src/donight/db.sqlite3
+src/donight/log.txt
+src/donight/scrapers_log.txt
+src/donight/externals_log.txt
+src/donight/scripts/events.xlsx

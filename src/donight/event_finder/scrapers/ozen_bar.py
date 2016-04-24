@@ -6,7 +6,7 @@ import requests
 from bs4 import BeautifulSoup
 from dateutil.relativedelta import relativedelta
 
-from donight.event_finder.scrapers.base_scraper import BaseScraper
+from donight.event_finder.scrapers.base_scraper import Scraper
 from donight.events import Event
 
 TIME_SEPERATOR = ':'
@@ -15,7 +15,7 @@ NUMBER_REGEX = '.*?([0-9]+).*?'
 HOUR_REGEX = '.*?([0-9]+:[0-9]+).*?'
 
 
-class OzenBarScraper(BaseScraper):
+class OzenBarScraper(Scraper):
     """
     This scraper is used to scrape music shows from the OzenBar website.
     """
@@ -34,11 +34,14 @@ class OzenBarScraper(BaseScraper):
         :rtype: list(Event)
         """
         today = dt.date.today()
+        # TODO: The OzenBar website has a bug, that doesn't account for the year in their calendar,
+        # TODO: we should only send requests for this year, but then what would we do on the end of december ?
         dates_in_surrounding_months = [today + relativedelta(months=diff)
                                        for diff in xrange(-3, 13)]
 
-        return chain.from_iterable([self.get_events_for_month(date.year, date.month)
-                                    for date in dates_in_surrounding_months])
+        return list(chain.from_iterable([self.get_events_for_month(date.year, date.month)
+                                         for date in dates_in_surrounding_months
+                                         if date.year == today.year]))
 
     def get_events_for_month(self, year, month):
         """
@@ -84,8 +87,9 @@ class OzenBarScraper(BaseScraper):
             url = event_element.find('a')['href']
             description = event_element.find('p').text
             image = event_element.find('img')['src']
-        except Exception as e:
-            # TODO: log and fix this !
+        except Exception:
+            self.logger.exception("Failed turning an OzenBar event of month (%s, %s) into an event, "
+                                  "the OzenBar event element is: \n%s\nException:", year, month, event_element.prettify())
             return None
 
         return Event(title=title, time=time, location=self.OZEN_BAR_LOCATION,
