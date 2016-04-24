@@ -19,3 +19,4 @@ if __name__ == '__main__':
     EventFinder().index_events()
 
     load_events_to_excel(events_file_name)
+

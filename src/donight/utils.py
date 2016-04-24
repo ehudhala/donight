@@ -56,3 +56,4 @@ class Counter(object):
     def has_reached_threshold(self, *args, **kwargs):
         self.__call_count += 1
         return self.__call_count >= self.__threshold
+
