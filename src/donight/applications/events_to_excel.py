@@ -48,4 +48,4 @@ class EventsExcel(object):
         :rtype: list
         """
         return [unicode(getattr(event, attr)) for attr in attributes]
-    
+
