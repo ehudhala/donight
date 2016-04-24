@@ -156,9 +156,8 @@ class FacebookEventScraper(object):
 
 
 if __name__ == '__main__':  # TODO remove
-
     s = FacebookEventsScraper(
-        NotImplemented,
+        NotImplemented,  # TODO add access token to test this
         "https://www.facebook.com/oz.shoshani.3?fref=ts",
         Counter(100).has_reached_threshold)
 
