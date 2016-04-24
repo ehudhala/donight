@@ -1,5 +1,4 @@
 from itertools import groupby
-
 from pyexcelerate import Workbook
 
 from donight.events import Event

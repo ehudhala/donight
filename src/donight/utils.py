@@ -10,7 +10,7 @@ SECONDS_IN_YEAR = 365 * SECONDS_IN_DAY
 def to_timestamp(date_time_object):
     """
     Gets a unix timestamp (time from epoch) from a datetime object.
-    (It isn't easily implemented in the datetime api.
+    (It isn't easily implemented in the datetime api)
     :param date_time_object: The datetime to get a timestamp of.
     :type date_time_object: datetime.datetime
     :return: A unix timestamp of the date.
@@ -46,4 +46,14 @@ def get_model_fields(model, excluded_fields=list()):
     """
     return [unicode(column.key) for column in inspect(model).mapper.columns
             if column.key not in excluded_fields]
+
+
+class Counter(object):
+    def __init__(self, threshold):
+        self.__threshold = threshold
+        self.__call_count = 0
+
+    def has_reached_threshold(self, *args, **kwargs):
+        self.__call_count += 1
+        return self.__call_count >= self.__threshold
 

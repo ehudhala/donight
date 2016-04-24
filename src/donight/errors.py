@@ -1,0 +1,2 @@
+class EventScrapingError(Exception):
+    pass
