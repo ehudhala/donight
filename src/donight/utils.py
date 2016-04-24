@@ -1,5 +1,7 @@
 import time
 
+from selenium.common.exceptions import NoSuchElementException
+
 SECONDS_IN_DAY = 24 * 60 * 60
 SECONDS_IN_MONTH = 30 * SECONDS_IN_DAY
 SECONDS_IN_YEAR = 365 * SECONDS_IN_DAY
@@ -31,3 +33,12 @@ def find(iterable, condition, default=None):
     """
     return next((item for item in iterable if condition(item)), default)
 
+
+class Counter(object):
+    def __init__(self, threshold):
+        self.__threshold = threshold
+        self.__call_count = 0
+
+    def has_reached_threshold(self, *args, **kwargs):
+        self.__call_count += 1
+        return self.__call_count >= self.__threshold
