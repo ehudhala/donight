@@ -123,7 +123,7 @@ class EventFinder(object):
         return self.session.query(Event).filter(
             Event.title == event.title,
             Event.location == event.location,
-            func.date(Event.time) == event.time.date()).first()
+            func.date(Event.start_time) == event.start_time.date()).first()
 
     def add_to_db(self, event):
         """
