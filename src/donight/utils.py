@@ -10,7 +10,7 @@ SECONDS_IN_YEAR = 365 * SECONDS_IN_DAY
 def to_timestamp(date_time_object):
     """
     Gets a unix timestamp (time from epoch) from a datetime object.
-    (It isn't easily implemented in the datetime api.)
+    (It isn't easily implemented in the datetime api)
     :param date_time_object: The datetime to get a timestamp of.
     :type date_time_object: datetime.datetime
     :return: A unix timestamp of the date.
