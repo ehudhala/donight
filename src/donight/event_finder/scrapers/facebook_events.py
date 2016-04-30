@@ -1,117 +1,98 @@
 import re
+from contextlib import contextmanager
 import time
 
 import facebook
 import selenium.webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 from donight.errors import EventScrapingError
+from donight.event_finder.scrapers.base_scraper import Scraper
 from donight.events import Event
 from donight.utils import Counter
+from donight.utils.web_drivers import EnhancedWebDriver
 
 assert __name__ != "facebook", "conflict with the facebook-sdk package name"
 
 
-class FacebookEventsScraper(object):
-    # TODO consider using the /events page present in some types of pages (e.g. groups): facebook.com/groups/123/events
+class FacebookEventsScraper(Scraper):
+    __LOADING_POSTS_GUI_LOCATOR = (By.CLASS_NAME, 'uiMorePagerLoader')
 
-    def __init__(self, access_token, page_url, should_stop_scraping, driver=None):
+    def __init__(self, access_token, page_url, should_stop_scraping, driver=None, logger=None):
         """
         :type page_url: basestring
-        :param access_token: An access token of a user with permissions to `page_url` and the 'user_events' permission
-                             on. Get it from https://developers.facebook.com/tools/explorer
+        :param access_token: An access token of a user with permissions to access the `page_url` and the 'user_events'
+                             permission set on. Get it from https://developers.facebook.com/tools/explorer
         :type access_token: basestring
         :param should_stop_scraping: A function accepting an Event and returning whether to stop scraping more events.
         :type driver: selenium.webdriver.remote.webdriver.WebDriver|None
         """
+        super(FacebookEventsScraper, self).__init__(logger)
         self.__page_url = page_url
         self.__access_token = access_token  # TODO scrape access token?
         self.__should_stop_scraping = should_stop_scraping
         self.__driver = driver
         self.__event_id_regex_in_url = re.compile(r'/events/(?P<id>\d+)($|/|\?).*')
 
-    # TODO refactor the shit out of this
     def scrape(self):
+        # TODO consider using the /events page present in some types of pages (e.g. groups): fb.com/groups/123/events
         event_scraper = FacebookEventScraper(self.__access_token)
-        scraped_events_ids = set()
 
-        should_quit_driver = False
-        driver = self.__driver
-
-        if driver is None:
-            should_quit_driver = True
-            driver = selenium.webdriver.Firefox()
-
-        try:
+        with self.__get_driver() as driver:
             driver.maximize_window()
+
             driver.get(self.__page_url)
 
-            loading_posts_gui_locator = (By.CLASS_NAME, 'uiMorePagerLoader')
-            while True:
-                try:
-                    unscraped_event_anchor = driver.find_element_by_css_selector(
-                        'a[href*="/events/"]:not([data-already-scraped])')
-
-                except NoSuchElementException:
-                    # load more events
-                    driver.execute_script('window.scrollBy(0, document.body.scrollHeight);')
-                    time.sleep(0.5)  # wait for browser to respond and create a 'loading' GUI
-
-                    try:
-                        loading_posts_gui_element = driver.find_element(loading_posts_gui_locator)
-                        is_no_more_posts_to_load = loading_posts_gui_element.is_displayed()
-                    except NoSuchElementException:
-                        is_no_more_posts_to_load = True
-
-                    if is_no_more_posts_to_load:
-                        print("It seems no there are no more events to scrape from the page {}".format(self.__page_url))
-                        break
-
-                    try:
-                        WebDriverWait(driver, 10).until(
-                            EC.invisibility_of_element_located(loading_posts_gui_locator))
-                    except TimeoutException as e:
-                        print("Facebook is taking too long to load new posts. Please check for internet connectivity "
-                              "issues and try again. If the issue persists, debug the code.", e)
-                        break
-
-                    continue
-
-                driver.execute_script('arguments[0].setAttribute("data-already-scraped", "true");',
-                                      unscraped_event_anchor)
-
-                event_url = unscraped_event_anchor.get_attribute('href')
-                try:
-                    event_id = self.__parse_event_id(event_url)
-                except EventScrapingError as e:
-                    print("Skipping URL.", e)
-                    continue
-
-                if event_id in scraped_events_ids:
-                    continue
-
-                # assuming that if the scraping later fails, it will always fail for this id.
-                scraped_events_ids.add(event_id)
-
+            for event_id in self.__iterate_unique_events_ids(driver):
                 try:
                     event = event_scraper.scrape(event_id)
 
-                except EventScrapingError as e:
-                    print('Error scraping facebook event with id {}.'.format(event_id), e)
+                except EventScrapingError:
+                    self.logger.exception('Error scraping facebook event with id {}.'.format(event_id))
                     continue
 
                 yield event
 
                 if self.__should_stop_scraping(event):
-                    print("Reached events threshold.")
+                    self.logger.warn("Reached events threshold.")
                     break
+
+    @contextmanager
+    def __get_driver(self):
+        if self.__driver is None:
+            should_quit_driver = True
+            driver = selenium.webdriver.Firefox()
+        else:
+            should_quit_driver = False
+            driver = self.__driver
+
+        try:
+            driver = EnhancedWebDriver(driver)
+
+            yield driver
 
         finally:
             if should_quit_driver:
                 driver.quit()
+
+    def __iterate_unique_events_ids(self, driver):
+        scraped_events_ids = set()
+
+        for event_anchor in self.__iterate_events_anchors(driver):
+            event_url = event_anchor.get_attribute('href')
+
+            event_id = self.__parse_event_id(event_url)
+
+            if event_id in scraped_events_ids:
+                continue
+            else:
+                # assuming that if the scraping later fails, it will always fail for this id.
+                scraped_events_ids.add(event_id)
+
+            yield event_id
 
     def __parse_event_id(self, event_url):
         match = self.__event_id_regex_in_url.search(event_url)
@@ -119,6 +100,60 @@ class FacebookEventsScraper(object):
             return match.group('id')
 
         raise EventScrapingError("Unable to parse facebook event id from url: {}".format(event_url))
+
+    def __iterate_events_anchors(self, driver):
+        while True:
+            try:
+                event_anchor = driver.find_element_by_css_selector('a[href*="/events/"]:not([data-already-handled])')
+
+            except NoSuchElementException:
+                if self.__load_more_posts(driver):
+                    continue
+                else:
+                    break
+
+            driver.execute_script('arguments[0].setAttribute("data-already-handled", "true");',
+                                  event_anchor)
+
+            if self.__event_id_regex_in_url.search(event_anchor.get_attribute('href')) is None:
+                # That's not really an event anchor
+                continue
+
+            yield event_anchor
+
+    def __load_more_posts(self, driver):
+        """
+        :returns: Whether there were new posts to load
+        :rtype: bool
+        """
+        driver.scroll_to_bottom()
+        time.sleep(0.5)
+
+        try:
+            loading_posts_gui_element = driver.find_element(self.__LOADING_POSTS_GUI_LOCATOR)
+
+        except NoSuchElementException:
+            is_no_more_posts_to_load = True
+
+        except:
+            raise
+
+        else:
+            is_no_more_posts_to_load = loading_posts_gui_element.is_displayed()
+
+        if is_no_more_posts_to_load:
+            self.logger.info("It seems no there are no more events to scrape from the page {}".format(self.__page_url))
+            return False
+
+        try:
+            WebDriverWait(driver, 10).until(
+                EC.invisibility_of_element_located(self.__LOADING_POSTS_GUI_LOCATOR))
+        except TimeoutException as e:
+            raise EventScrapingError("Facebook is taking too long to load new posts. "
+                                     "Please check for internet connectivity issues and try again. "
+                                     "If the issue persists, debug the code.", e)
+
+        return True
 
 
 class FacebookEventScraper(object):
@@ -158,8 +193,15 @@ class FacebookEventScraper(object):
 if __name__ == '__main__':  # TODO remove
     s = FacebookEventsScraper(
         NotImplemented,  # TODO add access token to test this
-        "https://www.facebook.com/oz.shoshani.3?fref=ts",
+        "https://www.facebook.com/hanasich",
         Counter(100).has_reached_threshold)
 
-    for event in s.scrape():
-        print (unicode(event))
+    try:
+        for event in s.scrape():
+            s.logger.debug(unicode(event))
+    except Exception as e:
+        print repr(e)
+        import traceback
+        traceback.print_exc()
+
+        raise
