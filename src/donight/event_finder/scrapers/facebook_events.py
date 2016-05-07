@@ -1,3 +1,5 @@
+import json
+import logging
 import re
 from contextlib import contextmanager
 import time
@@ -20,10 +22,9 @@ assert __name__ != "facebook", "conflict with the facebook-sdk package name"
 
 
 class FacebookEventsScraper(Scraper):
-    __LOADING_POSTS_GUI_LOCATOR = (By.CLASS_NAME, 'uiMorePagerLoader')
-
     def __init__(self, **kwargs):
         """
+        :param page_url: The page to be scraped. Use https://facebook.com/me to scrape your wall.
         :type page_url: basestring
 
         User authentication data:
@@ -36,20 +37,25 @@ class FacebookEventsScraper(Scraper):
 
         :param should_stop_scraping: A function accepting an Event and returning whether to stop scraping more events.
         :type driver: selenium.webdriver.remote.webdriver.WebDriver|None
+        :type logger: logging.Logger|None
         """
-        super(FacebookEventsScraper, self).__init__(kwargs.get('logger'))
+        super(FacebookEventsScraper, self).__init__(kwargs.pop('logger', None))
 
-        self.__access_token = kwargs.get('access_token')
-        self.__email = kwargs.get('email')
-        self.__password = kwargs.get('password')
+        self.__access_token = kwargs.pop('access_token', None)
+        self.__email = kwargs.pop('email', None)
+        self.__password = kwargs.pop('password', None)
         if (self.__access_token is None) and (self.__email is None or self.__password is None):
             raise TypeError('Expecting an access token or email and password.')
 
-        self.__page_url = kwargs['page_url']
-        self.__should_stop_scraping = kwargs['should_stop_scraping']
-        self.__driver = kwargs.setdefault('driver', None)
+        self.__page_url = kwargs.pop('page_url')
+        self.__should_stop_scraping = kwargs.pop('should_stop_scraping')
+        self.__driver = kwargs.pop('driver', None)
+
+        if kwargs:
+            raise TypeError('Received some redundant arguments: {}'.format(', '.join(kwargs.keys())))
 
         self.__event_id_regex_in_url = re.compile(r'/events/(?P<id>\d+)($|/|\?).*')
+        self.__loading_posts_gui_class_name = 'uiMorePagerLoader'
 
     def scrape(self):
         # TODO consider using the /events page present in some types of pages (e.g. groups): fb.com/groups/123/events
@@ -63,7 +69,7 @@ class FacebookEventsScraper(Scraper):
                 try:
                     event = event_scraper.scrape(event_id)
 
-                except EventScrapingError:
+                except EventScrapingError as e:
                     self.logger.exception('Error scraping facebook event with id {}.'.format(event_id))
                     continue
 
@@ -140,27 +146,20 @@ class FacebookEventsScraper(Scraper):
         :rtype: bool
         """
         driver.scroll_to_bottom()
-        time.sleep(0.5)
 
-        try:
-            loading_posts_gui_element = driver.find_element(self.__LOADING_POSTS_GUI_LOCATOR)
+        are_there_more_posts_to_load = driver.execute_script(
+            'var loadingGuiElements = document.getElementsByClassName({});'
+            'lastLoadingElement = loadingGuiElements[loadingGuiElements.length - 1];'
+            'return getComputedStyle(lastLoadingElement).displayed != "none";'.format(
+                json.dumps(self.__loading_posts_gui_class_name)))
 
-        except NoSuchElementException:
-            is_no_more_posts_to_load = True
-
-        except:
-            raise
-
-        else:
-            is_no_more_posts_to_load = loading_posts_gui_element.is_displayed()
-
-        if is_no_more_posts_to_load:
+        if not are_there_more_posts_to_load:
             self.logger.info("It seems no there are no more events to scrape from the page {}".format(self.__page_url))
             return False
 
         try:
             WebDriverWait(driver, 10).until(
-                EC.invisibility_of_element_located(self.__LOADING_POSTS_GUI_LOCATOR))
+                EC.invisibility_of_element_located((By.CLASS_NAME, self.__loading_posts_gui_class_name)))
         except TimeoutException as e:
             raise EventScrapingError("Facebook is taking too long to load new posts. "
                                      "Please check for internet connectivity issues and try again. "
@@ -177,7 +176,8 @@ class FacebookEventsScraper(Scraper):
     def __scrape_access_token(self, driver):
         assert self.__email is not None and self.__password is not None
 
-        driver.get('https://developers.facebook.com/tools/explorer')
+        GRAPH_API_EXPLORER_URL = 'https://developers.facebook.com/tools/explorer'
+        driver.get(GRAPH_API_EXPLORER_URL)
 
         email_input = driver.find_element_by_id('email')
         email_input.send_keys(self.__email)
@@ -185,6 +185,28 @@ class FacebookEventsScraper(Scraper):
         password_input = driver.find_element_by_id('pass')
         password_input.send_keys(self.__password)
         password_input.send_keys(keys.Keys.ENTER)
+
+        if not driver.current_url.startswith(GRAPH_API_EXPLORER_URL):
+            raise EventScrapingError('Email or password seem to be incorrect.')
+
+        get_token_button = driver.find_element_by_link_text('Get Token')
+        get_token_button.click()
+        get_user_access_token_button = driver.find_element_by_link_text('Get User Access Token')
+        get_user_access_token_button.click()
+
+        # TODO ASSUMPTION: the 'user_events' permission has already been given to the GraphApi Explorer by that user.
+        possible_get_access_token_submit_buttons = driver.find_elements_by_css_selector('button[type="submit"]')
+        for button in possible_get_access_token_submit_buttons:
+            if button.get_attribute('textContent') == 'Get Access Token':
+                break
+        else:
+            raise NoSuchElementException("Can't find the 'Get Access Token' submit button.")
+
+        button.click()
+
+        access_token_output = driver.find_element_by_css_selector(
+            "input[placeholder='Paste in an existing Access Token or click \"Get User Access Token\"']")
+        return access_token_output.get_attribute('value')
 
 
 class FacebookEventScraper(object):
@@ -221,18 +243,46 @@ class FacebookEventScraper(object):
         return event
 
 
-if __name__ == '__main__':  # TODO remove
+def main():  # TODO delete
+    with open(r'config\personal-data\facebook-auth-data.json') as f:
+        facebook_auth_data = json.load(f)
+
+    # create logger
+    logger = logging.getLogger('simple_example')
+    logger.setLevel(logging.DEBUG)
+
+    # create console handler and set level to debug
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+
+    # create formatter
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+    # add formatter to ch
+    ch.setFormatter(formatter)
+
+    # add ch to logger
+    logger.addHandler(ch)
+
     s = FacebookEventsScraper(
-        NotImplemented,  # TODO add access token to test this
-        "https://www.facebook.com/hanasich",
-        Counter(100).has_reached_threshold)
+        access_token=facebook_auth_data.get('access_token'),
+        email=facebook_auth_data.get('email'),
+        password=facebook_auth_data.get('password'),
+        page_url="https://www.facebook.com/hanasich",
+        should_stop_scraping=Counter(100).has_reached_threshold,
+        logger=logger)
 
     try:
         for event in s.scrape():
-            s.logger.debug(unicode(event))
+            print(unicode(event))
     except Exception as e:
         print repr(e)
         import traceback
+
         traceback.print_exc()
 
         raise
+
+
+if __name__ == '__main__':  # TODO delete
+    main()

@@ -1,6 +1,3 @@
-import time
-
-
 class EnhancedWebDriver(object):
     __is_initialized = False
 
@@ -17,5 +14,5 @@ class EnhancedWebDriver(object):
     def __setattr__(self, key, value):
         if self.__is_initialized:
             setattr(self.__driver, key, value)
-
-        object.__setattr__(self, key, value)
+        else:
+            object.__setattr__(self, key, value)

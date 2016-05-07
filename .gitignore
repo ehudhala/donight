@@ -94,3 +94,5 @@ src/donight/log.txt
 src/donight/scrapers_log.txt
 src/donight/externals_log.txt
 src/donight/scripts/events.xlsx
+
+src/donight/config/personal-data/
