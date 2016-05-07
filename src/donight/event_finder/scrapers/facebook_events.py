@@ -9,6 +9,7 @@ import selenium.webdriver
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common import keys
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
@@ -62,14 +63,27 @@ class FacebookEventsScraper(Scraper):
 
         with self.__get_driver() as driver:
             driver.maximize_window()
-            event_scraper = FacebookEventScraper(self.__get_access_token(driver))
+            event_scraper = FacebookEventScraper(self.__access_token or self.__scrape_access_token(driver))
             driver.get(self.__page_url)
 
             for event_id in self.__iterate_unique_events_ids(driver):
                 try:
                     event = event_scraper.scrape(event_id)
 
-                except EventScrapingError as e:
+                except AuthError:
+                    if self.__email is None or self.__password is None:
+                        raise
+
+                    event_scraper = FacebookEventScraper(self.__scrape_access_token(driver))
+
+                    try:
+                        event = event_scraper.scrape(event_id)
+
+                    except EventScrapingError:
+                        self.logger.exception('Error scraping facebook event with id {}.'.format(event_id))
+                        continue
+
+                except EventScrapingError:
                     self.logger.exception('Error scraping facebook event with id {}.'.format(event_id))
                     continue
 
@@ -167,18 +181,11 @@ class FacebookEventsScraper(Scraper):
 
         return True
 
-    def __get_access_token(self, driver):
-        if self.__access_token is None:
-            self.__access_token = self.__scrape_access_token(driver)
-
-        return self.__access_token
-
     def __scrape_access_token(self, driver):
-        assert self.__email is not None and self.__password is not None
-
         GRAPH_API_EXPLORER_URL = 'https://developers.facebook.com/tools/explorer'
         driver.get(GRAPH_API_EXPLORER_URL)
 
+        # ASSUMPTION: not logged in. logging in:
         email_input = driver.find_element_by_id('email')
         email_input.send_keys(self.__email)
 
@@ -189,20 +196,9 @@ class FacebookEventsScraper(Scraper):
         if not driver.current_url.startswith(GRAPH_API_EXPLORER_URL):
             raise EventScrapingError('Email or password seem to be incorrect.')
 
-        get_token_button = driver.find_element_by_link_text('Get Token')
-        get_token_button.click()
-        get_user_access_token_button = driver.find_element_by_link_text('Get User Access Token')
-        get_user_access_token_button.click()
-
-        # TODO ASSUMPTION: the 'user_events' permission has already been given to the GraphApi Explorer by that user.
-        possible_get_access_token_submit_buttons = driver.find_elements_by_css_selector('button[type="submit"]')
-        for button in possible_get_access_token_submit_buttons:
-            if button.get_attribute('textContent') == 'Get Access Token':
-                break
-        else:
-            raise NoSuchElementException("Can't find the 'Get Access Token' submit button.")
-
-        button.click()
+        # refresh access token
+        # ASSUMPTION: the 'user_events' permission has already been given to the GraphApi Explorer by that user.
+        driver.body.send_keys(Keys.ALT + 'T')  # refresh access token only if it's expired
 
         access_token_output = driver.find_element_by_css_selector(
             "input[placeholder='Paste in an existing Access Token or click \"Get User Access Token\"']")
@@ -221,6 +217,9 @@ class FacebookEventScraper(object):
                 event_id,
                 fields="place,name,description,start_time,end_time,ticket_uri,can_guests_invite,cover")
         except facebook.GraphAPIError as e:
+            if e.type == 'OAuthException':
+                raise AuthError(e)
+
             raise EventScrapingError("Could not access facebook event with id {}.".format(event_id), e)
 
         if not event_dict.get("can_guests_invite"):
@@ -241,6 +240,10 @@ class FacebookEventScraper(object):
                       description=description,
                       image=event_dict.get("cover", {}).get("source"))
         return event
+
+
+class AuthError(Exception):
+    pass
 
 
 def main():  # TODO delete

@@ -8,6 +8,10 @@ class EnhancedWebDriver(object):
     def scroll_to_bottom(self):
         self.execute_script('window.scrollBy(0, document.body.scrollHeight);')
 
+    @property
+    def body(self):
+        return self.find_element_by_tag_name('body')
+
     def __getattr__(self, item):
         return getattr(self.__driver, item)
 
