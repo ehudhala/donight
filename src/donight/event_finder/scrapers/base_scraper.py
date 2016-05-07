@@ -46,4 +46,4 @@ class Scraper(object):
         :return: The source this scraper is scraping.
         :rtype: str
         """
-        return cls.__name__.replace('Scraper', '')
+        return cls.__name__.replace('Scraper', '').replace('Events', '').replace('Event', '')
