@@ -180,7 +180,7 @@ class FacebookEventScraper(object):
             description += '\nTicket: ' + event_dict.get("ticket_uri")
 
         event = Event(title=event_dict.get("name"),
-                      time=event_dict.get("start_time"),
+                      start_time=event_dict.get("start_time"),
                       end_time=event_dict.get("end_time"),
                       location=event_dict.get("place", {}).get("name"),  # coordinates and id also available
                       price=None,  # TODO parse

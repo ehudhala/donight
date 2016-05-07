@@ -25,13 +25,13 @@ class EventsExcel(object):
         :param events_file_name: The name of the final excel file.
         :type events_file_name: str
         """
-        events = list(sorted(events, key=lambda event: event.time))
+        events = list(sorted(events, key=lambda event: event.start_time))
         workbook = Workbook()
         events_data = [map(unicode.title, self.FIELD_NAMES)]
 
-        for time, events_of_time in groupby(events, key=lambda event: event.time.date()):
-            events_data += [[unicode(time)]]
-            events_data += map(self.get_attributes, events_of_time)
+        for day, day_events in groupby(events, key=lambda event: event.start_time.date()):
+            events_data += [[unicode(day)]]
+            events_data += map(self.get_attributes, day_events)
 
         workbook.new_sheet('Events', data=events_data)
         workbook.save(events_file_name)

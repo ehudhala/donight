@@ -82,7 +82,7 @@ class OzenBarScraper(Scraper):
         """
         try:
             title = event_element.find('h2').text
-            time = self.parse_time(event_element, year, month)
+            start_time = self.parse_time(event_element, year, month)
             price = event_element.find('b').text
             url = event_element.find('a')['href']
             description = event_element.find('p').text
@@ -92,7 +92,7 @@ class OzenBarScraper(Scraper):
                                   "the OzenBar event element is: \n%s\nException:", year, month, event_element.prettify())
             return None
 
-        return Event(title=title, time=time, location=self.OZEN_BAR_LOCATION,
+        return Event(title=title, start_time=start_time, location=self.OZEN_BAR_LOCATION,
                      price=price, url=url, description=description, image=image)
 
     def parse_time(self, event_element, year, month):
