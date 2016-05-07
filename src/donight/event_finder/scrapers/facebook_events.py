@@ -5,6 +5,7 @@ import time
 import facebook
 import selenium.webdriver
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.webdriver.common import keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
@@ -21,29 +22,41 @@ assert __name__ != "facebook", "conflict with the facebook-sdk package name"
 class FacebookEventsScraper(Scraper):
     __LOADING_POSTS_GUI_LOCATOR = (By.CLASS_NAME, 'uiMorePagerLoader')
 
-    def __init__(self, access_token, page_url, should_stop_scraping, driver=None, logger=None):
+    def __init__(self, **kwargs):
         """
         :type page_url: basestring
+
+        User authentication data:
         :param access_token: An access token of a user with permissions to access the `page_url` and the 'user_events'
                              permission set on. Get it from https://developers.facebook.com/tools/explorer
-        :type access_token: basestring
+        :type access_token: basestring|None
+        --- or: ---
+        :type email: basestring|None
+        :type password: basestring|None
+
         :param should_stop_scraping: A function accepting an Event and returning whether to stop scraping more events.
         :type driver: selenium.webdriver.remote.webdriver.WebDriver|None
         """
-        super(FacebookEventsScraper, self).__init__(logger)
-        self.__page_url = page_url
-        self.__access_token = access_token  # TODO scrape access token?
-        self.__should_stop_scraping = should_stop_scraping
-        self.__driver = driver
+        super(FacebookEventsScraper, self).__init__(kwargs.get('logger'))
+
+        self.__access_token = kwargs.get('access_token')
+        self.__email = kwargs.get('email')
+        self.__password = kwargs.get('password')
+        if (self.__access_token is None) and (self.__email is None or self.__password is None):
+            raise TypeError('Expecting an access token or email and password.')
+
+        self.__page_url = kwargs['page_url']
+        self.__should_stop_scraping = kwargs['should_stop_scraping']
+        self.__driver = kwargs.setdefault('driver', None)
+
         self.__event_id_regex_in_url = re.compile(r'/events/(?P<id>\d+)($|/|\?).*')
 
     def scrape(self):
         # TODO consider using the /events page present in some types of pages (e.g. groups): fb.com/groups/123/events
-        event_scraper = FacebookEventScraper(self.__access_token)
 
         with self.__get_driver() as driver:
             driver.maximize_window()
-
+            event_scraper = FacebookEventScraper(self.__get_access_token(driver))
             driver.get(self.__page_url)
 
             for event_id in self.__iterate_unique_events_ids(driver):
@@ -154,6 +167,24 @@ class FacebookEventsScraper(Scraper):
                                      "If the issue persists, debug the code.", e)
 
         return True
+
+    def __get_access_token(self, driver):
+        if self.__access_token is None:
+            self.__access_token = self.__scrape_access_token(driver)
+
+        return self.__access_token
+
+    def __scrape_access_token(self, driver):
+        assert self.__email is not None and self.__password is not None
+
+        driver.get('https://developers.facebook.com/tools/explorer')
+
+        email_input = driver.find_element_by_id('email')
+        email_input.send_keys(self.__email)
+
+        password_input = driver.find_element_by_id('pass')
+        password_input.send_keys(self.__password)
+        password_input.send_keys(keys.Keys.ENTER)
 
 
 class FacebookEventScraper(object):
