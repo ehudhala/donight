@@ -31,7 +31,7 @@ class Event(Base):
     image = Column(String(MEDIUM_STR_LEN))
 
     def __repr__(self):
-        return u'{0} at {1} @ {2}'.format(self.title, self.location, self.time)
+        return u'{0} at {1} @ {2}'.format(self.title, self.location, self.start_time)
 
 
 engine = create_engine('sqlite:///{0}'.format(DB_PATH))
