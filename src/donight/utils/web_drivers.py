@@ -7,7 +7,7 @@ from selenium.webdriver.common.by import By as BaseBy
 
 
 class By(BaseBy):
-    PARTIAL_TEXT = "partial text"
+    pass
 
 
 class EnhancedWebDriver(object):
@@ -51,28 +51,6 @@ class EnhancedWebDriver(object):
             return False
 
         return True
-
-    def find_element_by_partial_text(self, text):
-        return self.find_element(By.PARTIAL_TEXT, text)
-
-    def find_element(self, by=By.ID, value=None):
-        by, value = self.__convert_to_base_locator(by, value)
-        return self.__driver.find_element(by, value)
-
-    def find_elements(self, by=By.ID, value=None):
-        by, value = self.__convert_to_base_locator(by, value)
-        return self.__driver.find_elements(by, value)
-
-    # noinspection PyMethodMayBeStatic
-    def __convert_to_base_locator(self, by, value):
-        if not By.is_valid(by) or not isinstance(value, str):
-            raise InvalidSelectorException("Invalid locator values passed in")
-
-        if by == By.PARTIAL_TEXT:
-            by = By.XPATH
-            value = "//*[contains(text(),{})]".format(json.dumps(value))
-
-        return by, value
 
     def __getattr__(self, item):
         return getattr(self.__driver, item)
