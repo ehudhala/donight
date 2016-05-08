@@ -1,17 +1,14 @@
 import json
 import logging
 import re
-from contextlib import contextmanager
 import time
+from contextlib import contextmanager
 
 import facebook
 import selenium.webdriver
-from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common import keys
-from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
 
 from donight.errors import EventScrapingError
 from donight.event_finder.scrapers.base_scraper import Scraper
@@ -56,7 +53,7 @@ class FacebookEventsScraper(Scraper):
             raise TypeError('Received some redundant arguments: {}'.format(', '.join(kwargs.keys())))
 
         self.__event_id_regex_in_url = re.compile(r'/events/(?P<id>\d+)($|/|\?).*')
-        self.__loading_posts_gui_class_name = 'uiMorePagerLoader'
+        self.__graph_api_explorer_url = 'https://developers.facebook.com/tools/explorer'
 
     def scrape(self):
         # TODO consider using the /events page present in some types of pages (e.g. groups): fb.com/groups/123/events
@@ -156,34 +153,23 @@ class FacebookEventsScraper(Scraper):
 
     def __load_more_posts(self, driver):
         """
-        :returns: Whether there were new posts to load
+        :returns: Whether there were new posts to load. NOTE: returns a false negative if there's no internet connection
         :rtype: bool
         """
         driver.scroll_to_bottom()
 
-        are_there_more_posts_to_load = driver.execute_script(
-            'var loadingGuiElements = document.getElementsByClassName({});'
-            'lastLoadingElement = loadingGuiElements[loadingGuiElements.length - 1];'
-            'return getComputedStyle(lastLoadingElement).displayed != "none";'.format(
-                json.dumps(self.__loading_posts_gui_class_name)))
+        # wait up to 5 seconds for new posts to load
+        for i in xrange(10):
+            if driver.is_scrolled_to_bottom():
+                time.sleep(0.5)
+            else:
+                return True
 
-        if not are_there_more_posts_to_load:
-            self.logger.info("It seems no there are no more events to scrape from the page {}".format(self.__page_url))
-            return False
-
-        try:
-            WebDriverWait(driver, 10).until(
-                EC.invisibility_of_element_located((By.CLASS_NAME, self.__loading_posts_gui_class_name)))
-        except TimeoutException as e:
-            raise EventScrapingError("Facebook is taking too long to load new posts. "
-                                     "Please check for internet connectivity issues and try again. "
-                                     "If the issue persists, debug the code.", e)
-
-        return True
+        self.logger.info("It seems no there are no more events to scrape from the page {}".format(self.__page_url))
+        return False
 
     def __scrape_access_token(self, driver):
-        GRAPH_API_EXPLORER_URL = 'https://developers.facebook.com/tools/explorer'
-        driver.get(GRAPH_API_EXPLORER_URL)
+        driver.get(self.__graph_api_explorer_url)
 
         # ASSUMPTION: not logged in. logging in:
         email_input = driver.find_element_by_id('email')
@@ -193,7 +179,7 @@ class FacebookEventsScraper(Scraper):
         password_input.send_keys(self.__password)
         password_input.send_keys(keys.Keys.ENTER)
 
-        if not driver.current_url.startswith(GRAPH_API_EXPLORER_URL):
+        if not driver.current_url.startswith(self.__graph_api_explorer_url):
             raise EventScrapingError('Email or password seem to be incorrect.')
 
         # refresh access token
