@@ -5,7 +5,7 @@ from logging import getLogger
 from sqlalchemy import func
 
 from donight.config.consts import TIME_BETWEEN_INDEXES
-from donight.event_finder.scrapers import ALL_SCRAPERS
+from donight.event_finder.scrapers import get_all_scrapers
 from donight.event_finder.scrapers.base_scraper import Scraper
 from donight.events import Session, Event
 from donight.utils import get_model_fields
@@ -18,7 +18,7 @@ class EventFinder(object):
     """
     # TODO: Add tests !.
     # TODO: Add tests for the scrapers (against the real internet) !.
-    def __init__(self, scrapers=ALL_SCRAPERS, session=None, logger=None):
+    def __init__(self, scrapers=None, session=None, logger=None):
         """
         :param scrapers: A list of scrapers, from which to scrape events and upload to the DB.
         :type scrapers: list(Scraper)
@@ -27,7 +27,7 @@ class EventFinder(object):
         :param logger: Defaults to the logger with the module name.
         :type logger: logging.Logger
         """
-        self.scrapers = scrapers
+        self.scrapers = scrapers or get_all_scrapers()
         self.session = session or Session()
         self.logger = logger or getLogger(__name__)
 
@@ -70,19 +70,26 @@ class EventFinder(object):
     def safely_scrape(self, scraper):
         """
         Used to scrape events from a scraper, but not fail everything if the scraper fails.
-        :param scraper: A scraper to scrape evvents from.
+        :param scraper: A scraper to scrape events from.
         :type scraper: Scraper
         :return: A list of events scraped from the scraper.
         :rtype: list(Event)
         """
+        self.logger.info('Scraping events from %s', scraper.get_scraping_source())
+        events = []
+
         try:
-            self.logger.info('Scraping events from %s', scraper.get_scraping_source())
-            events = scraper.scrape()
-            self.logger.info('Scraped %d events from %s', len(events), scraper.get_scraping_source())
-            return events
+            for event in scraper.scrape():
+                events.append(event)
+
         except Exception:
-            self.logger.exception("Failed scraping events from %s, still scraping from other sources, exception:", scraper.get_scraping_source())
-            return list()
+            self.logger.exception("Failed scraping events from %s. Still scraping from other sources. Exception:",
+                                  scraper.get_scraping_source())
+
+        finally:
+            self.logger.info('Scraped %d events from %s', len(events), scraper.get_scraping_source())
+
+        return events
 
     def upload_to_db(self, events):
         """

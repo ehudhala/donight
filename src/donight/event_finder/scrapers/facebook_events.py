@@ -4,6 +4,7 @@ import re
 import time
 from contextlib import contextmanager
 
+import dateutil.parser
 import facebook
 import selenium.webdriver
 from selenium.common.exceptions import NoSuchElementException
@@ -12,12 +13,12 @@ from selenium.webdriver.common import keys
 from donight.errors import EventScrapingError
 from donight.event_finder.scrapers.base_scraper import Scraper
 from donight.events import Event
-from donight.utils import Counter
 from donight.utils.web_drivers import EnhancedWebDriver, By
 
 assert __name__ != "facebook", "conflict with the facebook-sdk package name"
 
 
+# TODO a more descriptive return value for self.get_scraping_source (including scraped page).
 class FacebookEventsScraper(Scraper):
     def __init__(self, **kwargs):
         """
@@ -249,9 +250,11 @@ class FacebookEventScraper(object):
         if ticket_url:
             description += '\nTicket: ' + event_dict.get("ticket_uri")
 
+        start_time = event_dict.get("start_time")
+        end_time = event_dict.get("end_time")
         event = Event(title=event_dict.get("name"),
-                      start_time=event_dict.get("start_time"),
-                      end_time=event_dict.get("end_time"),
+                      start_time=self.__parse_datetime(start_time),
+                      end_time=self.__parse_datetime(end_time),
                       location=event_dict.get("place", {}).get("name"),  # coordinates and id also available
                       price=None,  # TODO parse
                       url="https://www.facebook.com/events/" + event_dict.get("id", event_id),
@@ -259,53 +262,12 @@ class FacebookEventScraper(object):
                       image=event_dict.get("cover", {}).get("source"))
         return event
 
+    def __parse_datetime(self, string):
+        if string is None:
+            return None
+
+        return dateutil.parser.parse(string)
+
 
 class AuthError(Exception):
     pass
-
-
-def main():  # TODO delete
-    with open(r'src\donight\config\personal-data\facebook-auth-data.json') as f:
-        facebook_auth_data = json.load(f)
-
-    # create logger
-    logger = logging.getLogger('simple_example')
-    logger.setLevel(logging.DEBUG)
-
-    # create console handler and set level to debug
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
-
-    # create formatter
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-    # add formatter to ch
-    ch.setFormatter(formatter)
-
-    # add ch to logger
-    logger.addHandler(ch)
-
-    counter = Counter(20)
-    s = FacebookEventsScraper(
-        access_token=facebook_auth_data.get('access_token'),
-        email=facebook_auth_data.get('email'),
-        password=facebook_auth_data.get('password'),
-        page_url="https://www.facebook.com/hanasich",
-        should_stop_scraping=counter.has_reached_threshold,
-        logger=logger)
-
-    try:
-        for event in s.scrape():
-            print(unicode(event))
-    except Exception as e:
-        print repr(e)
-        import traceback
-
-        traceback.print_exc()
-
-        raise
-
-    print "scraped {} events".format(counter.call_count)
-
-if __name__ == '__main__':  # TODO delete
-    main()
