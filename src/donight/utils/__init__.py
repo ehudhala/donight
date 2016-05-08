@@ -51,8 +51,8 @@ def get_model_fields(model, excluded_fields=list()):
 class Counter(object):
     def __init__(self, threshold):
         self.__threshold = threshold
-        self.__call_count = 0
+        self.call_count = 0
 
     def has_reached_threshold(self, *args, **kwargs):
-        self.__call_count += 1
-        return self.__call_count >= self.__threshold
+        self.call_count += 1
+        return self.call_count >= self.__threshold

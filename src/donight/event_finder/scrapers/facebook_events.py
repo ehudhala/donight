@@ -8,13 +8,12 @@ import facebook
 import selenium.webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common import keys
-from selenium.webdriver.common.keys import Keys
 
 from donight.errors import EventScrapingError
 from donight.event_finder.scrapers.base_scraper import Scraper
 from donight.events import Event
 from donight.utils import Counter
-from donight.utils.web_drivers import EnhancedWebDriver
+from donight.utils.web_drivers import EnhancedWebDriver, By
 
 assert __name__ != "facebook", "conflict with the facebook-sdk package name"
 
@@ -34,6 +33,8 @@ class FacebookEventsScraper(Scraper):
         :type password: basestring|None
 
         :param should_stop_scraping: A function accepting an Event and returning whether to stop scraping more events.
+        :param driver: A selenium web driver. If not supplied, a firefox driver is created, but this requires firefox
+                       to be installed. Currently tested for a firefox driver only.
         :type driver: selenium.webdriver.remote.webdriver.WebDriver|None
         :type logger: logging.Logger|None
         """
@@ -54,6 +55,7 @@ class FacebookEventsScraper(Scraper):
 
         self.__event_id_regex_in_url = re.compile(r'/events/(?P<id>\d+)($|/|\?).*')
         self.__graph_api_explorer_url = 'https://developers.facebook.com/tools/explorer'
+        self.__is_already_refreshed = False
 
     def scrape(self):
         # TODO consider using the /events page present in some types of pages (e.g. groups): fb.com/groups/123/events
@@ -158,6 +160,9 @@ class FacebookEventsScraper(Scraper):
         """
         driver.scroll_to_bottom()
 
+        got_confused_error_message = 'Sorry, we got confused'
+        try_refreshing_error_message = 'Please try refreshing the page'
+
         # wait up to 5 seconds for new posts to load
         for i in xrange(10):
             if driver.is_scrolled_to_bottom():
@@ -165,30 +170,57 @@ class FacebookEventsScraper(Scraper):
             else:
                 return True
 
+        if driver.has_element(By.XPATH,
+                              '//*[@role="dialog"][//*[contains(text(),{})]][//*[contains(text(),{})]]'.format(
+                                  json.dumps(got_confused_error_message), json.dumps(try_refreshing_error_message))):
+            if self.__is_already_refreshed:
+                raise EventScrapingError('Facebook is not reacting properly: received "{}" error twice.'.format(
+                    try_refreshing_error_message))
+
+            driver.refresh()
+            self.__is_already_refreshed = True
+            self.logger.warn('Received an error from facebook: "{}". Refreshing and retrying'.format(
+                try_refreshing_error_message))
+            # We're returning a possibly incorrect value without loading new posts.
+            # ASSUMPTION: other parts of the code will handle this.
+            return True
+
         self.logger.info("It seems no there are no more events to scrape from the page {}".format(self.__page_url))
         return False
 
     def __scrape_access_token(self, driver):
-        driver.get(self.__graph_api_explorer_url)
+        with driver.new_tab(self.__graph_api_explorer_url):
+            # ASSUMPTION: not logged in. logging in:
+            email_input = driver.find_element_by_id('email')
+            email_input.send_keys(self.__email)
 
-        # ASSUMPTION: not logged in. logging in:
-        email_input = driver.find_element_by_id('email')
-        email_input.send_keys(self.__email)
+            password_input = driver.find_element_by_id('pass')
+            password_input.send_keys(self.__password)
+            password_input.send_keys(keys.Keys.ENTER)
 
-        password_input = driver.find_element_by_id('pass')
-        password_input.send_keys(self.__password)
-        password_input.send_keys(keys.Keys.ENTER)
+            if not driver.current_url.startswith(self.__graph_api_explorer_url):
+                raise EventScrapingError('Email or password seem to be incorrect.')
 
-        if not driver.current_url.startswith(self.__graph_api_explorer_url):
-            raise EventScrapingError('Email or password seem to be incorrect.')
+            # refresh access token:
+            # ASSUMPTION: the 'user_events' permission has already been given to the GraphApi Explorer by that user.
+            get_token_button = driver.find_element_by_link_text('Get Token')
+            get_token_button.click()
+            get_user_access_token_button = driver.find_element_by_link_text('Get User Access Token')
+            get_user_access_token_button.click()
 
-        # refresh access token
-        # ASSUMPTION: the 'user_events' permission has already been given to the GraphApi Explorer by that user.
-        driver.body.send_keys(Keys.ALT + 'T')  # refresh access token only if it's expired
+            possible_get_access_token_submit_buttons = driver.find_elements_by_css_selector('button[type="submit"]')
+            for button in possible_get_access_token_submit_buttons:
+                if button.get_attribute('textContent') == 'Get Access Token':
+                    break
+            else:
+                raise NoSuchElementException("Can't find the 'Get Access Token' submit button.")
 
-        access_token_output = driver.find_element_by_css_selector(
-            "input[placeholder='Paste in an existing Access Token or click \"Get User Access Token\"']")
-        return access_token_output.get_attribute('value')
+            button.click()
+
+            access_token_output = driver.find_element_by_css_selector(
+                "input[placeholder='Paste in an existing Access Token or click \"Get User Access Token\"']")
+            access_token = access_token_output.get_attribute('value')
+            return access_token
 
 
 class FacebookEventScraper(object):
@@ -233,7 +265,7 @@ class AuthError(Exception):
 
 
 def main():  # TODO delete
-    with open(r'config\personal-data\facebook-auth-data.json') as f:
+    with open(r'src\donight\config\personal-data\facebook-auth-data.json') as f:
         facebook_auth_data = json.load(f)
 
     # create logger
@@ -253,12 +285,13 @@ def main():  # TODO delete
     # add ch to logger
     logger.addHandler(ch)
 
+    counter = Counter(20)
     s = FacebookEventsScraper(
         access_token=facebook_auth_data.get('access_token'),
         email=facebook_auth_data.get('email'),
         password=facebook_auth_data.get('password'),
         page_url="https://www.facebook.com/hanasich",
-        should_stop_scraping=Counter(100).has_reached_threshold,
+        should_stop_scraping=counter.has_reached_threshold,
         logger=logger)
 
     try:
@@ -272,6 +305,7 @@ def main():  # TODO delete
 
         raise
 
+    print "scraped {} events".format(counter.call_count)
 
 if __name__ == '__main__':  # TODO delete
     main()
