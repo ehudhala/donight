@@ -1,9 +1,9 @@
-import json
 from contextlib import contextmanager
 
-from selenium.common.exceptions import InvalidSelectorException, NoSuchElementException
-from selenium.webdriver.common.keys import Keys
+import selenium.webdriver
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By as BaseBy
+from selenium.webdriver.common.keys import Keys
 
 
 class By(BaseBy):
@@ -12,6 +12,7 @@ class By(BaseBy):
 
 class EnhancedWebDriver(object):
     __is_initialized = False
+    __driver = None
 
     def __init__(self, web_driver):
         self.__driver = web_driver
@@ -60,3 +61,18 @@ class EnhancedWebDriver(object):
             setattr(self.__driver, key, value)
         else:
             object.__setattr__(self, key, value)
+
+    @classmethod
+    def get_instance(cls):
+        if cls.__driver is None:
+            driver = selenium.webdriver.Firefox()
+            cls.__driver = EnhancedWebDriver(driver)
+
+        return cls.__driver
+
+    @classmethod
+    def get_enhanced_driver(cls, driver):
+        if isinstance(driver, cls):
+            return driver
+
+        return cls(driver)

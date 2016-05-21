@@ -1,5 +1,6 @@
 import time
 
+import dateutil.tz
 from sqlalchemy import inspect
 
 SECONDS_IN_DAY = 24 * 60 * 60
@@ -17,6 +18,20 @@ def to_timestamp(date_time_object):
     :rtype: int
     """
     return time.mktime(date_time_object.timetuple())
+
+
+def to_local_timezone(date_time_object):
+    """
+    Gets the given datetime adjusted to the local timezone.
+    If the given datetime is timezone-naive, the local timezone is assumed.
+    :type date_time_object: datetime.datetime
+    :return: The datetime adjusted to the local timezone.
+    :rtype: datetime.datetime
+    """
+    if date_time_object.tzinfo is None:
+        return date_time_object.replace(tzinfo=dateutil.tz.tzlocal())
+
+    return date_time_object.astimezone(dateutil.tz.tzlocal())
 
 
 def find(iterable, condition, default=None):

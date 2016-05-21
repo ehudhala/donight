@@ -6,13 +6,13 @@ from contextlib import contextmanager
 
 import dateutil.parser
 import facebook
-import selenium.webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common import keys
 
 from donight.errors import EventScrapingError
 from donight.event_finder.scrapers.base_scraper import Scraper
 from donight.events import Event
+from donight.utils import to_local_timezone
 from donight.utils.web_drivers import EnhancedWebDriver, By
 
 assert __name__ != "facebook", "conflict with the facebook-sdk package name"
@@ -20,6 +20,8 @@ assert __name__ != "facebook", "conflict with the facebook-sdk package name"
 
 # TODO a more descriptive return value for self.get_scraping_source (including scraped page).
 class FacebookEventsScraper(Scraper):
+    __scraped_access_tokens = {}  # A dict mapping (email, password) to the lastly scraped access token
+
     def __init__(self, **kwargs):
         """
         :param page_url: The page to be scraped. Use https://facebook.com/me to scrape your wall.
@@ -62,8 +64,7 @@ class FacebookEventsScraper(Scraper):
         # TODO consider using the /events page present in some types of pages (e.g. groups): fb.com/groups/123/events
 
         with self.__get_driver() as driver:
-            driver.maximize_window()
-            event_scraper = FacebookEventScraper(self.__access_token or self.__scrape_access_token(driver))
+            event_scraper = FacebookEventScraper(self._access_token or self.__scrape_access_token(driver))
             driver.get(self.__page_url)
 
             for event_id in self.__iterate_unique_events_ids(driver):
@@ -74,6 +75,10 @@ class FacebookEventsScraper(Scraper):
                     if self.__email is None or self.__password is None:
                         raise
 
+                    self.logger.warn("Encountered an authentication error. Access token might have expired. "
+                                     "Scraping another access token and retrying.")
+
+                    self._access_token = None
                     event_scraper = FacebookEventScraper(self.__scrape_access_token(driver))
 
                     try:
@@ -97,14 +102,12 @@ class FacebookEventsScraper(Scraper):
     def __get_driver(self):
         if self.__driver is None:
             should_quit_driver = True
-            driver = selenium.webdriver.Firefox()
+            driver = EnhancedWebDriver.get_instance()
         else:
             should_quit_driver = False
-            driver = self.__driver
+            driver = EnhancedWebDriver.get_enhanced_driver(self.__driver)
 
         try:
-            driver = EnhancedWebDriver(driver)
-
             yield driver
 
         finally:
@@ -122,7 +125,7 @@ class FacebookEventsScraper(Scraper):
             if event_id in scraped_events_ids:
                 continue
             else:
-                # assuming that if the scraping later fails, it will always fail for this id.
+                # ASSUMPTION: if the scraping later fails, it will always fail for this id.
                 scraped_events_ids.add(event_id)
 
             yield event_id
@@ -189,19 +192,26 @@ class FacebookEventsScraper(Scraper):
         self.logger.info("It seems no there are no more events to scrape from the page {}".format(self.__page_url))
         return False
 
+    @property
+    def _access_token(self):
+        if self.__access_token is not None:
+            return self.__access_token
+
+        scraped_access_token = self.__scraped_access_tokens.get((self.__email, self.__password), None)
+        return scraped_access_token
+
+    @_access_token.setter
+    def _access_token(self, value):
+        if self.__email:
+            self.__scraped_access_tokens[(self.__email, self.__password)] = value
+
+        self.__access_token = value
+
     def __scrape_access_token(self, driver):
         with driver.new_tab(self.__graph_api_explorer_url):
-            # ASSUMPTION: not logged in. logging in:
-            email_input = driver.find_element_by_id('email')
-            email_input.send_keys(self.__email)
+            self.__ensure_logged_in(driver)
 
-            password_input = driver.find_element_by_id('pass')
-            password_input.send_keys(self.__password)
-            password_input.send_keys(keys.Keys.ENTER)
-
-            if not driver.current_url.startswith(self.__graph_api_explorer_url):
-                raise EventScrapingError('Email or password seem to be incorrect.')
-
+            # TODO: try to make work ALT+T, maybe in phantomJs
             # refresh access token:
             # ASSUMPTION: the 'user_events' permission has already been given to the GraphApi Explorer by that user.
             get_token_button = driver.find_element_by_link_text('Get Token')
@@ -221,7 +231,30 @@ class FacebookEventsScraper(Scraper):
             access_token_output = driver.find_element_by_css_selector(
                 "input[placeholder='Paste in an existing Access Token or click \"Get User Access Token\"']")
             access_token = access_token_output.get_attribute('value')
+
+            self._access_token = access_token
             return access_token
+
+    def __ensure_logged_in(self, driver):
+        # ASSUMPTION: the lastly requested page requires the user to be logged in
+
+        if not self.__is_driver_on_login_page(driver):
+            return
+
+        email_input = driver.find_element_by_id('email')
+        email_input.send_keys(self.__email)
+
+        password_input = driver.find_element_by_id('pass')
+        password_input.send_keys(self.__password)
+        password_input.send_keys(keys.Keys.ENTER)
+
+        if self.__is_driver_on_login_page(driver):
+            raise EventScrapingError('Email or password seem to be incorrect.')
+
+    # noinspection PyMethodMayBeStatic
+    def __is_driver_on_login_page(self, driver):
+        return driver.has_element(By.XPATH, '//*[contains(text(), "Log into Facebook")]') or \
+               driver.has_element(By.XPATH, '//*[contains(text(), "You must log in to continue")]')
 
 
 class FacebookEventScraper(object):
@@ -266,7 +299,7 @@ class FacebookEventScraper(object):
         if string is None:
             return None
 
-        return dateutil.parser.parse(string)
+        return to_local_timezone(dateutil.parser.parse(string))
 
 
 class AuthError(Exception):

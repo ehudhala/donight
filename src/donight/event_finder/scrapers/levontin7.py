@@ -6,7 +6,7 @@ import requests
 
 from donight.event_finder.scrapers.base_scraper import Scraper
 from donight.events import Event
-from donight.utils import SECONDS_IN_MONTH, SECONDS_IN_YEAR, find
+from donight.utils import SECONDS_IN_MONTH, SECONDS_IN_YEAR, find, to_local_timezone
 
 
 class Levontin7Scraper(Scraper):
@@ -117,5 +117,4 @@ class Levontin7Scraper(Scraper):
         :return: A datetime object of that time.
         :rtype: datetime.datetime
         """
-        return dt.datetime.strptime(levontin_time, self.TIME_FORMAT)
-
+        return to_local_timezone(dt.datetime.strptime(levontin_time, self.TIME_FORMAT))
