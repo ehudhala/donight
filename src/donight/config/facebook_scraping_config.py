@@ -1,8 +1,26 @@
 from donight.utils import Counter
 
-# See documentation of FacebookEventsScraper for more details:
-PAGE_URL = 'https://www.facebook.com/hanasich'  # TODO change
-EMAIL = None  # TODO fill in
-PASSWORD = None  # TODO fill in
-ACCESS_TOKEN = None  # can be left empty
-SHOULD_STOP_SCRAPING = Counter(20).has_reached_threshold  # set a maximal number of events to scrape from the page
+
+# See documentation of FacebookEventsScraper for more details.
+
+default_max_events_for_page = 100
+default_email = None  # TODO fill in
+default_password = None  # TODO fill in
+default_access_token = None  # can be left empty
+
+facebook_scraped_pages = [
+    {
+        "page_url": 'https://www.facebook.com/hanasich',  # TODO change
+        "email": default_email,
+        "password": default_password,
+        "access_token": default_access_token,
+        "should_stop_scraping": Counter(default_max_events_for_page).has_reached_threshold
+    },
+    {
+        "page_url": 'https://www.facebook.com/hanasich',  # TODO change
+        "email": default_email,
+        "password": default_password,
+        "access_token": default_access_token,
+        "should_stop_scraping": Counter(default_max_events_for_page).has_reached_threshold
+    }  # TODO add other pages
+]
