@@ -22,16 +22,16 @@ def to_timestamp(date_time_object):
 
 def to_local_timezone(date_time_object):
     """
-    Gets the given datetime adjusted to the local timezone.
+    Gets the given datetime adjusted to the local timezone, without the timezone info.
     If the given datetime is timezone-naive, the local timezone is assumed.
     :type date_time_object: datetime.datetime
-    :return: The datetime adjusted to the local timezone.
+    :return: The datetime adjusted to the local timezone, without tzinfo.
     :rtype: datetime.datetime
     """
     if date_time_object.tzinfo is None:
-        return date_time_object.replace(tzinfo=dateutil.tz.tzlocal())
+        return date_time_object
 
-    return date_time_object.astimezone(dateutil.tz.tzlocal())
+    return date_time_object.astimezone(dateutil.tz.tzlocal()).replace(tzinfo=None)
 
 
 def find(iterable, condition, default=None):

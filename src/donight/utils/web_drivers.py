@@ -30,6 +30,7 @@ class EnhancedWebDriver(object):
     def new_tab(self, url=None):
         self.body.send_keys(Keys.CONTROL + 't')
         self.switch_to_window(self.window_handles[-1])
+        self.hide_window()  # ASSUMPTION: window was hidden before calling this method
 
         try:
             if url is not None:
@@ -39,6 +40,12 @@ class EnhancedWebDriver(object):
 
         finally:
             self.body.send_keys(Keys.CONTROL + 'w')
+
+    def hide_window(self):
+        size = self.get_window_size()
+
+        # position the window outside the screen:
+        self.set_window_position(-size['width'] - 10, -size['height'] - 10)
 
     @property
     def body(self):
