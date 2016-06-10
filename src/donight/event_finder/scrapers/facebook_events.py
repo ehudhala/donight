@@ -54,15 +54,13 @@ class FacebookEventsScraper(Scraper):
         self.__driver = kwargs.pop('driver', None)
 
         if kwargs:
-            raise TypeError('Received some redundant arguments: {}'.format(', '.join(kwargs.keys())))
+            raise ValueError('Received some redundant arguments: {}'.format(', '.join(kwargs.keys())))
 
         self.__event_id_regex_in_url = re.compile(r'/events/(?P<id>\d+)($|/|\?).*')
         self.__graph_api_explorer_url = 'https://developers.facebook.com/tools/explorer'
         self.__is_already_refreshed = False
 
     def scrape(self):
-        # TODO consider using the /events page present in some types of pages (e.g. groups): fb.com/groups/123/events
-
         with self.__get_driver() as driver:
             event_scraper = FacebookEventScraper(self._access_token or self.__scrape_access_token(driver))
             driver.get(self.__page_url)
@@ -186,7 +184,7 @@ class FacebookEventsScraper(Scraper):
             self.logger.warn('Received an error from facebook: "{}". Refreshing and retrying'.format(
                 try_refreshing_error_message))
             # We're returning a possibly incorrect value without loading new posts.
-            # ASSUMPTION: other parts of the code will handle this.
+            # ASSUMPTION: other parts of the code in this class will handle this.
             return True
 
         self.logger.info("It seems no there are no more events to scrape from the page {}".format(self.__page_url))
@@ -211,7 +209,7 @@ class FacebookEventsScraper(Scraper):
         with driver.new_tab(self.__graph_api_explorer_url):
             self.__ensure_logged_in(driver)
 
-            # TODO: try to make work ALT+T, maybe in phantomJs
+            # TODO: try to make ALT+T work, maybe in phantomJs
             # refresh access token:
             # ASSUMPTION: the 'user_events' permission has already been given to the GraphApi Explorer by that user.
             get_token_button = driver.find_element_by_link_text('Get Token')

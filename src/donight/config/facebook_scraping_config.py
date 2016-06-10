@@ -11,14 +11,14 @@ default_access_token = None  # can be left empty
 
 facebook_scraped_pages = [
     {
-        "page_url": 'https://www.facebook.com/hanasich',  # TODO change
+        "page_url": 'https://www.facebook.com/events/subscribed',
         "email": default_email,
         "password": default_password,
         "access_token": default_access_token,
         "should_stop_scraping": Counter(default_max_events_per_page).has_reached_threshold
     },
     {
-        "page_url": 'https://www.facebook.com/hanasich',  # TODO change
+        "page_url": 'https://www.facebook.com/hanasich/events',  # TODO change
         "email": default_email,
         "password": default_password,
         "access_token": default_access_token,

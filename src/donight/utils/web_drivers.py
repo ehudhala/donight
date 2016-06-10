@@ -72,7 +72,7 @@ class EnhancedWebDriver(object):
     @classmethod
     def get_instance(cls):
         if cls.__driver is None:
-            driver = selenium.webdriver.Firefox()
+            driver = selenium.webdriver.Firefox()  # ASSUMPTION: firefox is already installed.
             cls.__driver = EnhancedWebDriver(driver)
 
         return cls.__driver
