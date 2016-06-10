@@ -3,8 +3,12 @@ from donight.utils import Counter
 
 should_hide_browser_window = True
 
+# The path in which the scraping firefox executable is installed,
+# e.g. "C:\Program Files (x86)\Mozilla Firefox\firefox.exe". Use None to use the default installation path.
+browser_installation_path = None
+
 # See documentation of FacebookEventsScraper for more details.
-default_max_events_per_page = 2
+default_max_events_per_page = 50
 default_email = None  # TODO fill in
 default_password = None  # TODO fill in
 default_access_token = None  # can be left empty

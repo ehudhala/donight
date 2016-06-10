@@ -4,6 +4,9 @@ import selenium.webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By as BaseBy
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
+
+from donight.config import facebook_scraping_config
 
 
 class By(BaseBy):
@@ -12,7 +15,7 @@ class By(BaseBy):
 
 class EnhancedWebDriver(object):
     __is_initialized = False
-    __driver = None
+    __static_driver = None
 
     def __init__(self, web_driver):
         self.__driver = web_driver
@@ -60,6 +63,12 @@ class EnhancedWebDriver(object):
 
         return True
 
+    def __del__(self):
+        self.__is_initialized = True  # In case __init__ raised an error
+
+        if self.__driver:
+            self.__driver.quit()
+
     def __getattr__(self, item):
         return getattr(self.__driver, item)
 
@@ -71,11 +80,14 @@ class EnhancedWebDriver(object):
 
     @classmethod
     def get_instance(cls):
-        if cls.__driver is None:
-            driver = selenium.webdriver.Firefox()  # ASSUMPTION: firefox is already installed.
-            cls.__driver = EnhancedWebDriver(driver)
+        browser_installation_path = facebook_scraping_config.browser_installation_path  # TODO remove this dependency
+        # ASSUMPTION: browser_installation_path refers to a valid firefox executable.
+        if cls.__static_driver is None:
+            firefox_binary = None if browser_installation_path is None else FirefoxBinary(browser_installation_path)
+            driver = selenium.webdriver.Firefox(firefox_binary=firefox_binary)
+            cls.__static_driver = EnhancedWebDriver(driver)
 
-        return cls.__driver
+        return cls.__static_driver
 
     @classmethod
     def get_enhanced_driver(cls, driver):
