@@ -18,7 +18,7 @@ class Scraper(object):
         The reason it is important to log scraper failures
         is because we want to know if our scrapers fail (some of our sources chaned their api).
         :param logger: A scraper can get a logger, defaults to the module name logger.
-        :type logger: logging.Logger
+        :type logger: logging.Logger|None
         """
         self.logger = logger or getLogger(self.__module__)
 
@@ -46,4 +46,4 @@ class Scraper(object):
         :return: The source this scraper is scraping.
         :rtype: str
         """
-        return cls.__name__.replace('Scraper', '')
+        return cls.__name__.replace('Scraper', '').replace('Events', '').replace('Event', '')

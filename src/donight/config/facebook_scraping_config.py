@@ -1,0 +1,31 @@
+from donight.utils import Counter
+
+
+should_hide_browser_window = True
+
+# The path in which the scraping firefox executable is installed,
+# e.g. "C:\Program Files (x86)\Mozilla Firefox\firefox.exe". Use None to use the default installation path.
+browser_installation_path = None
+
+# See documentation of FacebookEventsScraper for more details.
+default_max_events_per_page = 50
+default_email = None  # TODO fill in
+default_password = None  # TODO fill in
+default_access_token = None  # can be left empty
+
+facebook_scraped_pages = [
+    {
+        "page_url": 'https://www.facebook.com/events/subscribed',
+        "email": default_email,
+        "password": default_password,
+        "access_token": default_access_token,
+        "should_stop_scraping": Counter(default_max_events_per_page).has_reached_threshold
+    },
+    {
+        "page_url": 'https://www.facebook.com/hanasich/events',  # TODO change
+        "email": default_email,
+        "password": default_password,
+        "access_token": default_access_token,
+        "should_stop_scraping": Counter(default_max_events_per_page).has_reached_threshold
+    }  # TODO add other pages
+]

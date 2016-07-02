@@ -8,6 +8,7 @@ from dateutil.relativedelta import relativedelta
 
 from donight.event_finder.scrapers.base_scraper import Scraper
 from donight.events import Event
+from donight.utils import to_local_timezone
 
 TIME_SEPERATOR = ':'
 
@@ -118,5 +119,4 @@ class OzenBarScraper(Scraper):
         full_time = re.findall(HOUR_REGEX, time_element.text)[0]
         hour, minute = map(int, full_time.split(TIME_SEPERATOR))
 
-        return dt.datetime(year, month, day, hour, minute)
-
+        return to_local_timezone(dt.datetime(year, month, day, hour, minute))
