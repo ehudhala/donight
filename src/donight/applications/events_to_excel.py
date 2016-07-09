@@ -47,5 +47,8 @@ class EventsExcel(object):
         :return: A list of the values of the attributes in the event.
         :rtype: list
         """
-        return [unicode(getattr(event, attr)) for attr in attributes]
+        return [_get_unicode_or_empty_string(getattr(event, attr)) for attr in attributes]
 
+
+def _get_unicode_or_empty_string(obj):
+    return u"" if obj is None else unicode(obj)

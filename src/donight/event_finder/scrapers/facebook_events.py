@@ -5,6 +5,7 @@ import time
 
 import dateutil.parser
 import facebook
+import requests
 import selenium
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver import FirefoxProfile
@@ -190,7 +191,7 @@ class FacebookEventsScraper(Scraper):
         with driver.new_tab(self.__graph_api_explorer_url):
             self.__ensure_logged_in(driver)
 
-            # TODO: try to make ALT+T work, maybe in phantomJs
+            # TODO: try to make ALT+T work, maybe in phantomJs, or try to refresh page
             # refresh access token:
             # ASSUMPTION: the 'user_events' permission has already been given to the GraphApi Explorer by that user.
             get_token_button = driver.find_element_by_link_text('Get Token')
@@ -237,21 +238,25 @@ class FacebookEventsScraper(Scraper):
 
 
 class FacebookEventScraper(object):
-    """docs at https://developers.facebook.com/docs/graph-api/reference/event/"""
+    """docs at https://developers.facebook.com/docs/graph-api/reference/v2.5/event"""
 
     def __init__(self, access_token):
+        requests.packages.urllib3.disable_warnings()
         self.__graph = facebook.GraphAPI(access_token, version='2.5')
 
     def scrape(self, event_id):
         try:
             event_dict = self.__graph.get_object(
                 event_id,
-                fields="place,name,description,start_time,end_time,ticket_uri,can_guests_invite,cover")
+                fields="place,name,description,start_time,end_time,ticket_uri,cover,owner,is_canceled")
         except facebook.GraphAPIError as e:
             if e.type == 'OAuthException':
                 raise AuthError(e)
 
             raise EventScrapingError("Could not access facebook event with id {}.".format(event_id), e)
+
+        if event_dict.get('is_canceled', False):
+            raise EventScrapingError("Event has been canceled.")
 
         # if not event_dict.get("can_guests_invite"):
         #     raise EventScrapingError("Event does not allow inviting guests")
@@ -259,7 +264,17 @@ class FacebookEventScraper(object):
         description = event_dict.get("description")
         ticket_url = event_dict.get("ticket_uri")
         if ticket_url:
-            description += '\nTicket: ' + event_dict.get("ticket_uri")
+            ticket_description = u'Ticket: ' + ticket_url
+            if description:
+                description += u'\n' + ticket_description
+            else:
+                description = ticket_description
+
+        owner_id = event_dict.get("owner", {}).get("id")
+        if owner_id:
+            owner_url = "https://www.facebook.com/" + event_dict.get("owner", {}).get("id")
+        else:
+            owner_url = None
 
         start_time = event_dict.get("start_time")
         end_time = event_dict.get("end_time")
@@ -270,7 +285,9 @@ class FacebookEventScraper(object):
                       price=None,  # TODO parse
                       url="https://www.facebook.com/events/" + event_dict.get("id", event_id),
                       description=description,
-                      image=event_dict.get("cover", {}).get("source"))
+                      image=event_dict.get("cover", {}).get("source"),
+                      owner=event_dict.get("owner", {}).get("name"),
+                      owner_url=owner_url)
         return event
 
     def __parse_datetime(self, string):
@@ -292,6 +309,7 @@ class FacebookScrapingWebDriver(EnhancedWebDriver):
         profile = FirefoxProfile()
         profile.set_preference("intl.accept_languages", "en-us,en")
         # do not load images:
+        profile.set_preference('browser.migration.version', 9001)
         profile.set_preference('permissions.default.image', 2)
         profile.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
 
@@ -299,3 +317,4 @@ class FacebookScrapingWebDriver(EnhancedWebDriver):
         web_driver = EnhancedWebDriver(driver, should_hide_window)
 
         super(FacebookScrapingWebDriver, self).__init__(web_driver, should_hide_window)
+        self.implicitly_wait(5)

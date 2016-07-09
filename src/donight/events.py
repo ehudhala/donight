@@ -29,6 +29,8 @@ class Event(Base):
     url = Column(String(MEDIUM_STR_LEN))
     description = Column(String(MEDIUM_STR_LEN))
     image = Column(String(MEDIUM_STR_LEN))
+    owner = Column(String(MEDIUM_STR_LEN))
+    owner_url = Column(String(MEDIUM_STR_LEN))
 
     def __repr__(self):
         return u'{0} at {1} @ {2}'.format(self.title, self.location, self.start_time)
