@@ -15,11 +15,14 @@ class By(BaseBy):
 
 class EnhancedWebDriver(object):
     __is_initialized = False
-    __static_driver = None
 
-    def __init__(self, web_driver):
+    def __init__(self, web_driver, should_hide_window):
         self.__driver = web_driver
+        self.__should_hide_window = should_hide_window
         self.__is_initialized = True
+
+        if self.__should_hide_window:
+            self.hide_window()
 
     def scroll_to_bottom(self):
         self.execute_script('window.scrollBy(0, document.body.scrollHeight);')
@@ -33,7 +36,8 @@ class EnhancedWebDriver(object):
     def new_tab(self, url=None):
         self.body.send_keys(Keys.CONTROL + 't')
         self.switch_to_window(self.window_handles[-1])
-        self.hide_window()  # ASSUMPTION: window was hidden before calling this method
+        if self.__should_hide_window:
+            self.hide_window()
 
         try:
             if url is not None:
@@ -63,11 +67,18 @@ class EnhancedWebDriver(object):
 
         return True
 
-    def __del__(self):
-        self.__is_initialized = True  # In case __init__ raised an error
-
+    def quit(self):
         if self.__driver:
             self.__driver.quit()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.quit()
+
+    def __del__(self):
+        self.quit()
 
     def __getattr__(self, item):
         return getattr(self.__driver, item)
@@ -77,21 +88,3 @@ class EnhancedWebDriver(object):
             setattr(self.__driver, key, value)
         else:
             object.__setattr__(self, key, value)
-
-    @classmethod
-    def get_instance(cls):
-        browser_installation_path = facebook_scraping_config.browser_installation_path  # TODO remove this dependency
-        # ASSUMPTION: browser_installation_path refers to a valid firefox executable.
-        if cls.__static_driver is None:
-            firefox_binary = None if browser_installation_path is None else FirefoxBinary(browser_installation_path)
-            driver = selenium.webdriver.Firefox(firefox_binary=firefox_binary)
-            cls.__static_driver = EnhancedWebDriver(driver)
-
-        return cls.__static_driver
-
-    @classmethod
-    def get_enhanced_driver(cls, driver):
-        if isinstance(driver, cls):
-            return driver
-
-        return cls(driver)

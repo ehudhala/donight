@@ -2,12 +2,14 @@ import json
 import logging
 import re
 import time
-from contextlib import contextmanager
 
 import dateutil.parser
 import facebook
+import selenium
 from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver import FirefoxProfile
 from selenium.webdriver.common import keys
+from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 
 from donight.errors import EventScrapingError
 from donight.event_finder.scrapers.base_scraper import Scraper
@@ -24,93 +26,72 @@ class FacebookEventsScraper(Scraper):
 
     def __init__(self, **kwargs):
         """
-        :param page_url: The page to be scraped. Use https://facebook.com/me to scrape your wall.
+        :param page_url: The page to be scraped.
         :type page_url: basestring
 
-        User authentication data:
-        :param access_token: An access token of a user with permissions to access the `page_url` and the 'user_events'
-                             permission set on. Get it from https://developers.facebook.com/tools/explorer
-        :type access_token: basestring|None
-        --- or: ---
-        :type email: basestring|None
-        :type password: basestring|None
+        :param email: The email address with which the scraped facebook user is registered to facebook.
+        :type email: basestring
+        :param password: The user's facebook password.
+        :type password: basestring
 
-        :param should_stop_scraping: A function accepting an Event and returning whether to stop scraping more events.
-        :param driver: A selenium web driver. If not supplied, a firefox driver is created, but this requires firefox
-                       to be installed. Currently tested for a firefox driver only.
-        :type driver: selenium.webdriver.remote.webdriver.WebDriver|None
+        :param halt_condition: A condition that, once it applies to a scraped event, will cause the scraper to stop
+                               scraping.
+        :type halt_condition: ScrapingHaltCondition
+
+        :param driver: A selenium web driver to interact with facebook.
+        :type driver: FacebookScrapingWebDriver
+
         :type logger: logging.Logger|None
         """
         super(FacebookEventsScraper, self).__init__(kwargs.pop('logger', None))
 
-        self.__access_token = kwargs.pop('access_token', None)
-        self.__email = kwargs.pop('email', None)
-        self.__password = kwargs.pop('password', None)
-        if (self.__access_token is None) and (self.__email is None or self.__password is None):
-            raise TypeError('Expecting an access token or email and password.')
+        self.__email = kwargs.pop('email')
+        self.__password = kwargs.pop('password')
+        self.__access_token = None
 
         self.__page_url = kwargs.pop('page_url')
-        self.__should_stop_scraping = kwargs.pop('should_stop_scraping')
+        self.__halt_condition = kwargs.pop('halt_condition')
         self.__driver = kwargs.pop('driver', None)
 
         if kwargs:
-            raise ValueError('Received some redundant arguments: {}'.format(', '.join(kwargs.keys())))
+            raise ValueError('Received some unexpected arguments: {}'.format(', '.join(kwargs.keys())))
 
         self.__event_id_regex_in_url = re.compile(r'/events/(?P<id>\d+)($|/|\?).*')
         self.__graph_api_explorer_url = 'https://developers.facebook.com/tools/explorer'
         self.__is_already_refreshed = False
 
     def scrape(self):
-        with self.__get_driver() as driver:
-            event_scraper = FacebookEventScraper(self._access_token or self.__scrape_access_token(driver))
-            driver.get(self.__page_url)
+        event_scraper = FacebookEventScraper(self._access_token or self.__scrape_access_token(self.__driver))
+        self.__driver.get(self.__page_url)
 
-            for event_id in self.__iterate_unique_events_ids(driver):
+        for event_id in self.__iterate_unique_events_ids(self.__driver):
+            try:
+                event = event_scraper.scrape(event_id)
+
+            except AuthError:
+                self.logger.warn("Encountered an authentication error. Access token might have expired. "
+                                 "Scraping another access token and retrying.")
+
+                self._access_token = None
+                event_scraper = FacebookEventScraper(self.__scrape_access_token(self.__driver))
+
                 try:
                     event = event_scraper.scrape(event_id)
-
-                except AuthError:
-                    if self.__email is None or self.__password is None:
-                        raise
-
-                    self.logger.warn("Encountered an authentication error. Access token might have expired. "
-                                     "Scraping another access token and retrying.")
-
-                    self._access_token = None
-                    event_scraper = FacebookEventScraper(self.__scrape_access_token(driver))
-
-                    try:
-                        event = event_scraper.scrape(event_id)
-
-                    except EventScrapingError:
-                        self.logger.exception('Error scraping facebook event with id {}.'.format(event_id))
-                        continue
 
                 except EventScrapingError:
                     self.logger.exception('Error scraping facebook event with id {}.'.format(event_id))
                     continue
 
-                yield event
+            except EventScrapingError:
+                self.logger.exception('Error scraping facebook event with id {}.'.format(event_id))
+                continue
 
-                if self.__should_stop_scraping(event):
-                    self.logger.warn("Reached events threshold.")
-                    break
+            yield event
 
-    @contextmanager
-    def __get_driver(self):
-        if self.__driver is None:
-            should_quit_driver = True
-            driver = EnhancedWebDriver.get_instance()
-        else:
-            should_quit_driver = False
-            driver = EnhancedWebDriver.get_enhanced_driver(self.__driver)
-
-        try:
-            yield driver
-
-        finally:
-            if should_quit_driver:
-                driver.quit()
+            should_stop_scraping = self.__halt_condition.should_stop_scraping(event)
+            if should_stop_scraping:
+                self.logger.warn("Reached events threshold: " + should_stop_scraping.why)
+                break
 
     def __iterate_unique_events_ids(self, driver):
         scraped_events_ids = set()
@@ -165,10 +146,10 @@ class FacebookEventsScraper(Scraper):
         got_confused_error_message = 'Sorry, we got confused'
         try_refreshing_error_message = 'Please try refreshing the page'
 
-        # wait up to 5 seconds for new posts to load
-        for i in xrange(10):
+        # wait up to 10 seconds for new posts to load
+        for i in xrange(40):
             if driver.is_scrolled_to_bottom():
-                time.sleep(0.5)
+                time.sleep(0.25)
             else:
                 return True
 
@@ -181,7 +162,7 @@ class FacebookEventsScraper(Scraper):
 
             driver.refresh()
             self.__is_already_refreshed = True
-            self.logger.warn('Received an error from facebook: "{}". Refreshing and retrying'.format(
+            self.logger.warn('Received an error from facebook: "{}". Refreshing and retrying.'.format(
                 try_refreshing_error_message))
             # We're returning a possibly incorrect value without loading new posts.
             # ASSUMPTION: other parts of the code in this class will handle this.
@@ -272,9 +253,8 @@ class FacebookEventScraper(object):
 
             raise EventScrapingError("Could not access facebook event with id {}.".format(event_id), e)
 
-        if not event_dict.get("can_guests_invite"):
-            # TODO what if scraped for personal use?
-            raise EventScrapingError("Event does not allow inviting guests")
+        # if not event_dict.get("can_guests_invite"):
+        #     raise EventScrapingError("Event does not allow inviting guests")
 
         description = event_dict.get("description")
         ticket_url = event_dict.get("ticket_uri")
@@ -302,3 +282,20 @@ class FacebookEventScraper(object):
 
 class AuthError(Exception):
     pass
+
+
+class FacebookScrapingWebDriver(EnhancedWebDriver):
+    def __init__(self, should_hide_window, installation_path):
+        # ASSUMPTION: installation_path refers to a valid firefox executable.
+        firefox_binary = None if installation_path is None else FirefoxBinary(installation_path)
+
+        profile = FirefoxProfile()
+        profile.set_preference("intl.accept_languages", "en-us,en")
+        # do not load images:
+        profile.set_preference('permissions.default.image', 2)
+        profile.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
+
+        driver = selenium.webdriver.Firefox(firefox_profile=profile, firefox_binary=firefox_binary)
+        web_driver = EnhancedWebDriver(driver, should_hide_window)
+
+        super(FacebookScrapingWebDriver, self).__init__(web_driver, should_hide_window)

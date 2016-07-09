@@ -61,13 +61,3 @@ def get_model_fields(model, excluded_fields=list()):
     """
     return [unicode(column.key) for column in inspect(model).mapper.columns
             if column.key not in excluded_fields]
-
-
-class Counter(object):
-    def __init__(self, threshold):
-        self.__threshold = threshold
-        self.call_count = 0
-
-    def has_reached_threshold(self, *args, **kwargs):
-        self.call_count += 1
-        return self.call_count >= self.__threshold
