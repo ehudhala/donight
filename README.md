@@ -15,7 +15,7 @@ cd donight/src
 python setup.py develop
 ```
 
-(Note: Donight is still under heavy development, so for now installation is only for developing purposes.
+(Note: Donight is still under heavy development, so for now installation is only for developing purposes.)
 
 #### Facebook setup:
 
@@ -28,11 +28,13 @@ Additional setup is required to scrape facebook users:
     selenium 2.53.2. Use `pip install selenium==2.53.2` to install that version.
 2. Configure the scraping in src/donight/config/facebook_scraping_config.py. You'll need to specify the scraped
 user email, password, the scraped pages URLs, etc. - it's all documented in that page.
-3. Configure the scraped user to permit facebook's Graph API Explorer to access the user's events.
+4. Configure the scraped user.
     1. Manually login to the scraped user.
     2. Enter the [Graph API Explorer](https://developers.facebook.com/tools/explorer) page.
-    3. Click 'Get Token' → 'Get Use Access Token'. Make sure the `user_events` option is enabled and click 'Get Access
+    3. Click 'Get Token' → 'Get User Access Token'. Make sure the `user_events` option is enabled and click 'Get Access
     Token'. If Facebook requires that you permit the app to access your account, do so.
+    4. Enter the user's [language settings page](https://www.facebook.com/settings?tab=language) and set facebook to 
+    be shown in `English (US)`.
 
 ## Usage
 
