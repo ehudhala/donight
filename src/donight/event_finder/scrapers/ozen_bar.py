@@ -94,7 +94,7 @@ class OzenBarScraper(Scraper):
             return None
 
         return Event(title=title, start_time=start_time, location=self.OZEN_BAR_LOCATION,
-                     price=price, url=url, description=description, image=image)
+                     price=price, url=url, description=description, image=image, owner=None, owner_url=None)
 
     def parse_time(self, event_element, year, month):
         """

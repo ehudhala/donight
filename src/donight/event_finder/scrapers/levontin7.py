@@ -60,7 +60,9 @@ class Levontin7Scraper(Scraper):
                          price=price,
                          url=levontin_event['url'],
                          description=description,
-                         image=image)
+                         image=image,
+                         owner=None,
+                         owner_url=None)
         except Exception:
             self.logger.exception("Failed turning a Levontin event into an event, "
                                   "the Levontin event is: \n%s\nException:", json.dumps(levontin_event, indent=4))
