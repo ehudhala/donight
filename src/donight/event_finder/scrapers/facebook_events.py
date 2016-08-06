@@ -261,8 +261,8 @@ class FacebookEventScraper(object):
         # if not event_dict.get("can_guests_invite"):
         #     raise EventScrapingError("Event does not allow inviting guests")
 
-        description = event_dict.get("description")
-        ticket_url = event_dict.get("ticket_uri")
+        description = event_dict.get("description", '')
+        ticket_url = event_dict.get("ticket_uri", '')
         if ticket_url:
             ticket_description = u'Ticket: ' + ticket_url
             if description:
