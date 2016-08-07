@@ -38,7 +38,7 @@ class OzenBarScraper(Scraper):
         # TODO: The OzenBar website has a bug, that doesn't account for the year in their calendar,
         # TODO: we should only send requests for this year, but then what would we do on the end of december ?
         dates_in_surrounding_months = [today + relativedelta(months=diff)
-                                       for diff in xrange(-3, 13)]
+                                       for diff in xrange(-3, 5)]
 
         return list(chain.from_iterable([self.get_events_for_month(date.year, date.month)
                                          for date in dates_in_surrounding_months
@@ -120,3 +120,4 @@ class OzenBarScraper(Scraper):
         hour, minute = map(int, full_time.split(TIME_SEPERATOR))
 
         return to_local_timezone(dt.datetime(year, month, day, hour, minute))
+
