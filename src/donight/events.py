@@ -35,6 +35,10 @@ class Event(Base):
     def __repr__(self):
         return u'{0} at {1} @ {2}'.format(self.title, self.location, self.start_time)
 
+    def to_dict(self):
+        return {column.name: unicode(getattr(self, column.name))
+                for column in self.__table__.columns}
+
 
 engine = create_engine('sqlite:///{0}'.format(DB_PATH))
 Base.metadata.create_all(engine)

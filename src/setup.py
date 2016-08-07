@@ -11,6 +11,6 @@ setup(
                       'openpyxl',
                       'python-dateutil',
                       'facebook-sdk',
-                      'selenium==2.53.2']
-)
+                      'selenium==2.53.2',
+                      'flask'])
 
