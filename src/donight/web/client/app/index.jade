@@ -5,7 +5,7 @@ doctype html
 html(lang="en", ng-app="donight")
     head
         meta(charset="utf-8")
-        link(rel="shortcut icon", href="/static/images/favicon.png")
+        link(rel="shortcut icon", href="/static/images/favicon.ico")
         title  Donight 
         
         base(href="/")
@@ -13,14 +13,12 @@ html(lang="en", ng-app="donight")
         meta(name="description", content="Search Stuff")
         meta(name="author", content="cookiecutter.email")
 
-    body(ng-cloak)
-        include skeleton/skeleton.jade
-
         +script("/static/bower_components/jQuery/dist/jquery.min.js")
 
         +style("/static/bower_components/bootstrap/dist/css/bootstrap.min.css")
         +style("/static/bower_components/bootstrap/dist/css/bootstrap-theme.min.css")
         +script("/static/bower_components/bootstrap/dist/js/bootstrap.min.js")
+        +style("/static/bower_components/bootstrap-rtl/dist/css/bootstrap-rtl.css")
 
         +style("/static/bower_components/font-awesome/css/font-awesome.min.css")
 
@@ -37,9 +35,12 @@ html(lang="en", ng-app="donight")
 
         +script("/static/bower_components/underscore/underscore-min.js")
 
-        +script("/static/assets/djng-forms.js")
+        +script("/static/bower_components/angular-smart-table/dist/smart-table.min.js")
 
         +style("/static/build/app.css")
         +script("/static/build/app.js")
+
+    body(ng-cloak)
+        include skeleton/skeleton.jade
 
 

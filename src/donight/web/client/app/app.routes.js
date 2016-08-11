@@ -13,16 +13,9 @@
     function getStates() {
         return [
             {
-                state: 'home',
-                config: {
-                    url: '/',
-                    templateUrl: '/static/build/home/home.html'
-                }
-            },
-            {
                 state: 'events',
                 config: {
-                    url: '/events',
+                    url: '/',
                     templateUrl: '/static/build/events/events.html',
                     controller: 'EventsController as eventsVm'
                 }

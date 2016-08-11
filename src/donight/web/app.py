@@ -1,8 +1,10 @@
 import json
 import os
 
+import datetime
 from flask import Flask, Response
 from flask.helpers import send_from_directory
+from sqlalchemy import func
 
 from donight.config.consts import ROOT_DIR
 from donight.events import Session, Event
@@ -37,7 +39,9 @@ def get_all_events():
     Returns a flask response, containing all the events in the db.
     """
     session = Session()
-    all_events = session.query(Event).all()
+    all_events = (session.query(Event)
+        .filter(func.date(Event.start_time) >= datetime.datetime.now().date())
+        .order_by(Event.start_time).all())
     return JsonResponse([event.to_dict() for event in all_events])
 
 

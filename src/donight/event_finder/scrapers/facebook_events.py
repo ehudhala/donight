@@ -263,12 +263,8 @@ class FacebookEventScraper(object):
 
         description = event_dict.get("description", '')
         ticket_url = event_dict.get("ticket_uri", '')
-        if ticket_url:
-            ticket_description = u'Ticket: ' + ticket_url
-            if description:
-                description += u'\n' + ticket_description
-            else:
-                description = ticket_description
+        if not description and ticket_url:
+            description = u'Ticket: ' + ticket_url
 
         owner_id = event_dict.get("owner", {}).get("id")
         if owner_id:
@@ -287,7 +283,8 @@ class FacebookEventScraper(object):
                       description=description,
                       image=event_dict.get("cover", {}).get("source"),
                       owner=event_dict.get("owner", {}).get("name"),
-                      owner_url=owner_url)
+                      owner_url=owner_url,
+                      ticket_url=ticket_url)
         return event
 
     def __parse_datetime(self, string):

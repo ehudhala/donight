@@ -1,19 +1,22 @@
 {
-  "name": "nino",
-  "description": "The coolest boiler-plate out there",
-  "author": "Ofir123",
+  "name": "Donight",
+  "description": "Events :)",
+  "author": "Donight",
   "dependencies": {
     "jquery": "~2.2.3",
     "underscore": "~1.8.3",
-    "bootstrap": "~3.3.4",
+    "bootstrap": "~3.3.7",
+    "bootstrap-rtl": "~3.4.0",
     "font-awesome": "~4.5.0",
-    "angular": "~1.5.5",
-    "angular-resource": "~1.5.5",
-    "angular-animate": "~1.5.5",
-    "angular-sanitize": "~1.5.5",
+    "angular": "~1.5.x",
+    "angular-resource": "~1.5.x",
+    "angular-animate": "~1.5.x",
+    "angular-sanitize": "~1.5.x",
     "angular-bootstrap": "~1.3.2",
     "angular-ui-router": "~0.2.18",
-    "angular-ui-select": "~0.16.1"
+    "angular-ui-select": "~0.16.1",
+    "angular-smart-table": "~2.1.8",
+    "angular-moment": "~1.0.0"
   },
   "private": true,
   "license": "MIT"

@@ -79,7 +79,7 @@ class EventFinder(object):
         events = []
 
         try:
-            events.extend(scraper.scrape())
+            events.extend([event for event in scraper.scrape() if event.title != ''])
         except Exception:
             self.logger.exception("Failed scraping events from %s. Still scraping from other sources. Exception:",
                                   scraper.get_scraping_source())

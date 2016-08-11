@@ -22,7 +22,7 @@ class OzenBarScraper(Scraper):
     """
     EVENTS_URL = 'http://www.ozenbar.com/wp-admin/admin-ajax.php'
 
-    OZEN_BAR_LOCATION = 'OzenBar'
+    OZEN_BAR_LOCATION = u'\u05d0\u05d5\u05d6\u05df\u05d1\u05e8'
 
     def scrape(self):
         """
