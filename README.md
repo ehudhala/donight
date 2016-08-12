@@ -35,6 +35,18 @@ user email, password, the scraped pages URLs, etc. - it's all documented in that
     Token'. If Facebook requires that you permit the app to access your account, do so.
     4. Enter the user's [language settings page](https://www.facebook.com/settings?tab=language) and set facebook to 
     be shown in `English (US)`.
+    
+
+#### Web setup:
+
+In order to develop the web server, the following should be done:
+
+1. Install [node.js](https://nodejs.org/).
+2. In `src/donight/web/client` run `npm install`.
+3. Run `gulp` in order to compile the sources for the web frontend. 
+    (You can run `gulp watch` in order to automatically recompile)
+4. Start the web server by running `python src/donight/web/app.py`.
+
 
 ## Usage
 
