@@ -1,51 +1,30 @@
-.row(ng-repeat-start='event in eventsVm.events')
-    .col-xs-12
-        h4
-            a(ng-href="{{ event.url }}", target="_blank") {{ event.title }}
-    .col-xs-12.col-md-4
-        .col-xs-3
-            p איפה:
-        .col-xs-9
-            p {{ event.location }}
-    .col-xs-12.col-md-4
-        .col-xs-3
-            p מתי:
-        .col-xs-9
-            p {{ event.start_time | date:'HH:mm dd/MM/yyyy' }}
-    .col-xs-12.col-md-4
-        .col-xs-3
-            p מחיר:
-        .col-xs-9
-            p {{ eventsVm.priceDisplay(event) }}
+div(ng-repeat="event in eventsVm.events")
+    .row
+        .col-xs-12
+            h4
+                a(ng-href="{{ event.url }}", target="_blank") {{ event.title }}
 
-.row(ng-repeat-end)
-    .col-xs-12.col-md-9
-        p {{ event.description }}
-    .col-xs-12.col-md-3
-        img.img-rounded.img-responsive(ng-src="{{ event.image }}")
+    .row
+        .col-xs-12.col-md-4.pull-right
+            .col-xs-3.pull-right
+                p איפה:
+            .col-xs-9.pull-right
+                p {{ event.location }}
+        .col-xs-12.col-md-4.pull-right
+            .col-xs-3.pull-right
+                p מתי:
+            .col-xs-9.pull-right
+                p {{ event.start_time | amCalendar:Date():{'sameElse': 'MM/DD/YYYY בשעה HH:mm'} }}
+        .col-xs-12.col-md-4.pull-right
+            .col-xs-3.pull-right
+                p מחיר:
+            .col-xs-9.pull-right
+                p {{ eventsVm.priceDisplay(event) }}
 
+    .row
+        .col-xs-12.col-md-9.bottom-margin.pull-right
+            hm-read-more(hm-text="{{ event.description }}", hm-limit="200", hm-more-text="קרא עוד", hm-less-text="פחות")
+        .col-xs-12.col-md-3.bottom-margin.pull-right
+            img.img-rounded.img-responsive(ng-src="{{ event.image }}")
 
-//
-//table.table.table-striped(st-table='eventsVm.displayEvents', st-safe-src="eventsVm.events")
-//    thead
-//        tr
-//            th הופעה
-//            th(st-sort="start_time") תאריך
-//            th שעה
-//            th(st-sort="location") איפה
-//            th(st-sort="eventsVm.getPrice") מחיר
-//
-//    tbody
-//        tr(ng-repeat-start='event in eventsVm.displayEvents')
-//            td
-//                a(ng-href="{{ event.url }}", target="_blank") {{ event.title }}
-//            td {{ event.start_time | date:'dd/MM/yyyy' }}
-//            td {{ event.start_time | date:'HH:mm' }}
-//            td {{ event.location }}
-//            td {{ eventsVm.priceDisplay(event) }}
-//        tr(ng-repeat-end)
-//            td {{ event.description }}
-//            td
-//                img.event-image(ng-src="{{ event.image }}")
-//
 
