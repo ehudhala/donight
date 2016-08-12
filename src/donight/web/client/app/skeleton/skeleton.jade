@@ -1,24 +1,16 @@
-nav.navbar.navbar-default(role='navigation')
-    .container
-        .navbar-header.pull-right
-            //button.navbar-toggle.collapsed(type='button', data-toggle='collapse', data-target='#navbar-items', aria-expanded='false')
-                span.sr-only Toggle navigation
-                span.icon-bar
-                span.icon-bar
-                span.icon-bar
+nav.purple
+    .nav-wrapper
+        a.brand-logo.right(href='/')
+            |  Donight
+            i.material-icons.right event
 
-            a.navbar-brand(href='/')
-                i.fa.fa-calendar
-                |  Donight
-
-        //#navbar-items.collapse.navbar-collapse
-            ul.nav.navbar-nav
-                li
-                    a(ui-sref="events")
-                        i.fa אירועים
-                li
-                    a(ui-sref="home")
-                        i.fa בית
+        .filter(ng-controller="FilterController as filterVm")
+            a#filter-button.left(data-activates='filter', dropdown='', data-hover='true')
+                i.material-icons filter_list
+            ul#filter.dropdown-content
+                li(ng-repeat="day in filterVm.week")
+                    a.waves-effect.waves-light(ng-click="filterVm.filterDay(day)")
+                        | {{ filterVm.calendarDay(day) }}
 
 .container
     div#wrapper(ui-view)

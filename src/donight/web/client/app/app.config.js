@@ -33,7 +33,7 @@
             if (typeof value === 'string' && (match = value.match(regexIso8601))) {
                 var milliseconds = Date.parse(match[0]);
                 if (!isNaN(milliseconds)) {
-                    input[key] = new Date(milliseconds);
+                    input[key] = moment.utc(milliseconds);
                 }
             } else if (typeof value === 'object') {
                 // Recurse into object

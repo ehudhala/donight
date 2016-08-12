@@ -6,11 +6,11 @@
             // Angular libraries.
             'ngAnimate', 'ngResource', 'ngSanitize',
             // External libraries.
-            'ui.bootstrap', 'ui.router', 'ui.select',
+            'ui.router', 'ui.select', 'ui.materialize',
             // Donight dependencies
             'angularMoment', 'hm.readmore',
             // App modules
-            'blocks.router', 'donight.utils', 'donight.events'
+            'blocks.router', 'donight.events', 'donight.filter'
         ])
         .run(setGlobalState);
 

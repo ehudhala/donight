@@ -19,6 +19,14 @@
                     templateUrl: '/static/build/events/events.html',
                     controller: 'EventsController as eventsVm'
                 }
+            },
+            {
+                state: 'events.filter',
+                config: {
+                    url: 'events/:startDate',
+                    templateUrl: '/static/build/events/events.html',
+                    controller: 'EventsController as eventsVm'
+                }
             }
         ];
     }
