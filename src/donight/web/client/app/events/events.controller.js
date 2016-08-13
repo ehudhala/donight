@@ -23,7 +23,7 @@
         eventsVm.filteredEvents = function(events) {
             return _.filter(events, function(event) {
                 return $state.params.startDate === undefined ||
-                       event.start_time.isSameOrAfter(moment($state.params.startDate), 'day');
+                       event.start_time.isSameOrAfter(moment.utc($state.params.startDate), 'day');
             });
         };
     }
