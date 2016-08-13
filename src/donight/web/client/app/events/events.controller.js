@@ -16,8 +16,14 @@
             return Number(price);
         };
 
+        var specialPriceDisplays = {
+            '': 'לא ידוע',
+            '0': 'חינם !'
+        };
+
         eventsVm.priceDisplay = function(event) {
-            return event.price !== '' ? event.price + '₪' : 'לא ידוע';
+            var specialDisplay = specialPriceDisplays[event.price];
+            return specialDisplay !== undefined ? specialDisplay : event.price + '₪';
         };
 
         eventsVm.filteredEvents = function(events) {
