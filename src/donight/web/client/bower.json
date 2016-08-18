@@ -16,7 +16,7 @@
     "angular-moment": "~1.0.0",
     "angular-read-more": "~1.0.5",
     "materialize": "~0.97.7",
-    "angular-materialize": "0.1.9"
+    "angular-materialize": "~0.1.9"
   },
   "private": true,
   "license": "MIT"
