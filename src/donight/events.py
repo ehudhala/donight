@@ -1,9 +1,10 @@
 import datetime
+
 from sqlalchemy import create_engine, Column, Integer, String, Sequence, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-from donight.config.consts import DB_PATH
+from donight.config.consts import DB_CONNECTION_STRING
 
 MEDIUM_STR_LEN = 1024
 
@@ -50,8 +51,10 @@ class Event(Base):
         return attr_serializer(attr) if attr is not None else ''
 
 
-engine = create_engine('sqlite:///{0}'.format(DB_PATH))
+engine = create_engine(DB_CONNECTION_STRING)
 Base.metadata.create_all(engine)
 
 Session = sessionmaker(bind=engine)
+
+
 

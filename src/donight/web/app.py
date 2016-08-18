@@ -6,7 +6,7 @@ from flask import Flask, Response
 from flask.helpers import send_from_directory
 from sqlalchemy import func
 
-from donight.config.consts import ROOT_DIR
+from donight.config.consts import ROOT_DIR, DEBUG
 from donight.events import Session, Event
 
 STATIC_FOLDER = os.path.join(ROOT_DIR, 'web', 'client', 'static')
@@ -46,5 +46,5 @@ def get_all_events():
 
 
 if __name__ == '__main__':
-    app.run('0.0.0.0', debug=True)
+    app.run('0.0.0.0', debug=DEBUG)
 
