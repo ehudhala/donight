@@ -45,6 +45,6 @@ def get_all_events():
     return JsonResponse([event.to_dict() for event in all_events])
 
 
-if __name__ == '__main__':
-    app.run('0.0.0.0', debug=DEBUG)
+# if __name__ == '__main__':
+#     app.run('0.0.0.0', debug=DEBUG)
 
