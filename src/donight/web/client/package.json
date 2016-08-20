@@ -26,7 +26,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ofir123/Nino.git"
+    "url": "https://github.com/ehudhala/donight.git"
+  },
+  "scripts": {
+    "postinstall": "gulp"
   },
   "license": "MIT"
 }
