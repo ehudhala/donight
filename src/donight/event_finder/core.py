@@ -5,8 +5,7 @@ from logging import getLogger
 from sqlalchemy import func
 
 from donight.config.consts import TIME_BETWEEN_INDEXES
-from donight.event_finder.scrapers import get_all_scrapers
-from donight.event_finder.scrapers.base_scraper import Scraper
+from donight.event_finder.scrapers import Scraper, get_all_scrapers
 from donight.events import Session, Event
 from donight.utils import get_model_fields
 
