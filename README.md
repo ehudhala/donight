@@ -10,9 +10,9 @@ It aims to be **easily extensible**, in order to allow an open source community 
 To install simply run:
 
 ```bash
-git clone https://github.com/ehudhala/donight.git
-cd donight/src
-python setup.py develop
+> git clone https://github.com/ehudhala/donight.git
+> cd donight/src
+> python setup.py develop
 ```
 
 (Note: Donight is still under heavy development, so for now installation is only for developing purposes.)
@@ -37,7 +37,7 @@ user email, password, the scraped pages URLs, etc. - it's all documented in that
     be shown in `English (US)`.
     
 
-#### Web setup:
+#### Web development setup:
 
 In order to develop the web server, the following should be done:
 
@@ -49,6 +49,8 @@ In order to develop the web server, the following should be done:
 
 
 #### Web Deployment using Heroku:
+
+##### Setting up Heroku deployment:
 
 In order to deploy to [Heroku](https://www.heroku.com/), the following should be done:
 
@@ -62,12 +64,26 @@ Email: python@example.com
 Password:
 ```
 4. Create the Heroku app (from the project root directory): `heroku create <app_name>`.
-5. Define the buildpacks for heroku (python for the app, and node for compiling the client):
+5. Set the conifguration for deployment and database access:
+```bash
+> heroku config:set DEBUG=false
+> heroku config:set DB_ADDRESS=<Address of the database>
+> heroku config:set DB_NAME=<Name of the database>
+> heroku config:set DB_USERNAME=<Username of the database>
+> heroku config:set DB_PASSWORD=<Password of the database>
+```
+6. Optional: If the database is not postgresql: `heroku config:set DB_ENGINE=<Name of the sqlalchemy engine for your DB>`
+7. Define the buildpacks for heroku (python for the app, and node for compiling the client):
 ```bash
 > heroku buildpacks:set heroku/python
 > heroku buildpacks:add heroku/nodejs
 ```
-6. Deploy: `git push heroku master`
+
+##### Deploying using Heroku after setup
+
+```bash
+> git push heroku master
+```
 
 
 ## Usage
