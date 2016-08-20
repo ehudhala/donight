@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Events index",
   "author": "ehudhal",
-  "devDependencies": {
+  "dependencies": {
     "gulp": "^3.8.11",
     "gulp-util": "^3.0.4",
     "gulp-concat": "^2.5.2",
