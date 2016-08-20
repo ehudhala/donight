@@ -2,17 +2,17 @@ import os
 
 from donight.utils import SECONDS_IN_DAY
 
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'true').lower() == 'true'
 
 ROOT_DIR = os.path.dirname(os.path.dirname(__file__))
 
 if not DEBUG:
     # Real DB configuration. (Should only be used in production)
-    DB_ENGINE = ''
-    DB_ADDRESS = ''
-    DB_NAME = ''
-    DB_USERNAME = ''
-    DB_PASSWORD = ''
+    DB_ENGINE = os.environ.get('DB_ENGINE', 'postgresql')
+    DB_ADDRESS = os.environ.get('DB_ADDRESS', '')
+    DB_NAME = os.environ.get('DB_NAME', '')
+    DB_USERNAME = os.environ.get('DB_USERNAME', '')
+    DB_PASSWORD = os.environ.get('DB_PASSWORD', '')
     DB_CONNECTION_STRING = '{0}://{1}:{2}@{3}/{4}'.format(
         DB_ENGINE, DB_USERNAME, DB_PASSWORD, DB_ADDRESS, DB_NAME)
 else:
