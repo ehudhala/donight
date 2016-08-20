@@ -1,19 +1,7 @@
 {
-  "name": "donight",
-  "version": "1.0.0",
-  "description": "Events index",
-  "main": "index.js",
+  "name": "dummy",
+  "description": "Dummy package.json so we can deploy to heroku. Installs gulp and builds the client.",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/ehudhala/donight.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/ehudhala/donight/issues"
-  },
-  "homepage": "https://github.com/ehudhala/donight#readme"
+    "postinstall": "cd src/donight/web/client; npm install;"
+  }
 }
