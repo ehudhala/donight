@@ -48,6 +48,28 @@ In order to develop the web server, the following should be done:
 4. Start the web server by running `python src/donight/web/app.py`.
 
 
+#### Web Deployment using Heroku:
+
+In order to deploy to [Heroku](https://www.heroku.com/), the following should be done:
+
+1. Create a free [Heroku account](https://signup.heroku.com/signup/dc).
+2. Download the [Heroku Toolbelt](https://devcenter.heroku.com/toolbelt-downloads/windows)
+3. Login to heroku:
+```bash
+> heroku login
+Enter your Heroku credentials.
+Email: python@example.com
+Password:
+```
+4. Create the Heroku app (from the project root directory): `heroku create <app_name>`.
+5. Define the buildpacks for heroku (python for the app, and node for compiling the client):
+```bash
+> heroku buildpacks:set heroku/python
+> heroku buildpacks:add heroku/nodejs
+```
+6. Deploy: `git push heroku master`
+
+
 ## Usage
 
 Donight is simple to use. 
