@@ -9,6 +9,7 @@ jdcal==1.2
 Jinja2==2.8
 MarkupSafe==0.23
 openpyxl==2.4.0b1
+psycopg2==2.6.2
 python-dateutil==2.5.3
 requests==2.11.1
 selenium==2.53.2
