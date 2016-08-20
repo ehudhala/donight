@@ -55,9 +55,9 @@ LOGGING_CONFIG = {
             'level': 'DEBUG',
             'propagate': False
         },
-        '': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-        },
+        # '': {
+        #     'handlers': ['externals_file'],
+        #     'level': 'DEBUG',
+        # },
     }
 }
