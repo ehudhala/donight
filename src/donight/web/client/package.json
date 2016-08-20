@@ -1,8 +1,8 @@
 {
-  "name": "nino",
+  "name": "donight",
   "version": "1.0.0",
-  "description": "The coolest boiler-plate out there",
-  "author": "Ofir123",
+  "description": "Events index",
+  "author": "ehudhal",
   "devDependencies": {
     "gulp": "^3.8.11",
     "gulp-util": "^3.0.4",

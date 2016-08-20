@@ -1,0 +1,19 @@
+{
+  "name": "donight",
+  "version": "1.0.0",
+  "description": "Events index",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ehudhala/donight.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ehudhala/donight/issues"
+  },
+  "homepage": "https://github.com/ehudhala/donight#readme"
+}
