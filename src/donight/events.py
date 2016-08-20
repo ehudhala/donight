@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import create_engine, Column, Integer, String, Sequence, DateTime
+from sqlalchemy import create_engine, Column, Integer, String, Text, Sequence, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
@@ -29,7 +29,7 @@ class Event(Base):
     location = Column(String(MEDIUM_STR_LEN))
     price = Column(String(MEDIUM_STR_LEN))
     url = Column(String(MEDIUM_STR_LEN))
-    description = Column(String(MEDIUM_STR_LEN))
+    description = Column(Text())
     image = Column(String(MEDIUM_STR_LEN))
     owner = Column(String(MEDIUM_STR_LEN))
     owner_url = Column(String(MEDIUM_STR_LEN))
@@ -55,6 +55,3 @@ engine = create_engine(DB_CONNECTION_STRING)
 Base.metadata.create_all(engine)
 
 Session = sessionmaker(bind=engine)
-
-
-
