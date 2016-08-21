@@ -35,6 +35,13 @@ class Event(Base):
     owner_url = Column(String(MEDIUM_STR_LEN))
     ticket_url = Column(String(MEDIUM_STR_LEN))
 
+    event_type = Column(String(MEDIUM_STR_LEN))
+
+    __mapper_args__ = {
+        'polymorphic_on': event_type,
+        'polymorphic_identity': 'event'
+    }
+
     def __repr__(self):
         return u'{0} at {1} @ {2}'.format(self.title, self.location, self.start_time)
 
