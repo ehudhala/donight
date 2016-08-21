@@ -14,7 +14,7 @@ from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 
 from donight.errors import EventScrapingError
 from donight.event_finder.scrapers.base_scraper import Scraper
-from donight.events import Event
+from donight.events import Event, FacebookEvent
 from donight.utils import to_local_timezone
 from donight.utils.web_drivers import EnhancedWebDriver, By
 
@@ -274,17 +274,18 @@ class FacebookEventScraper(object):
 
         start_time = event_dict.get("start_time")
         end_time = event_dict.get("end_time")
-        event = Event(title=event_dict.get("name"),
-                      start_time=self.__parse_datetime(start_time),
-                      end_time=self.__parse_datetime(end_time),
-                      location=event_dict.get("place", {}).get("name"),  # coordinates and id also available
-                      price=None,  # TODO parse
-                      url="https://www.facebook.com/events/" + event_dict.get("id", event_id),
-                      description=description,
-                      image=event_dict.get("cover", {}).get("source"),
-                      owner=event_dict.get("owner", {}).get("name"),
-                      owner_url=owner_url,
-                      ticket_url=ticket_url)
+        event = FacebookEvent(
+            title=event_dict.get("name"),
+            start_time=self.__parse_datetime(start_time),
+            end_time=self.__parse_datetime(end_time),
+            location=event_dict.get("place", {}).get("name"),  # coordinates and id also available
+            price=None,  # TODO parse
+            url="https://www.facebook.com/events/" + event_dict.get("id", event_id),
+            description=description,
+            image=event_dict.get("cover", {}).get("source"),
+            owner=event_dict.get("owner", {}).get("name"),
+            owner_url=owner_url,
+            ticket_url=ticket_url)
         return event
 
     def __parse_datetime(self, string):
@@ -315,3 +316,4 @@ class FacebookScrapingWebDriver(EnhancedWebDriver):
 
         super(FacebookScrapingWebDriver, self).__init__(web_driver, should_hide_window)
         self.implicitly_wait(5)
+

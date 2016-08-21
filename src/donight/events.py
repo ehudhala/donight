@@ -6,6 +6,10 @@ from sqlalchemy.orm import sessionmaker
 
 from donight.config.consts import DB_CONNECTION_STRING
 
+DEFAULT_EVENT_TYPE = 'event'
+SHOW_EVENT_TYPE = 'show'
+FACEBOOK_EVENT_TYPE = 'facebook_event'
+
 MEDIUM_STR_LEN = 1024
 
 Base = declarative_base()
@@ -31,15 +35,12 @@ class Event(Base):
     url = Column(String(MEDIUM_STR_LEN))
     description = Column(Text())
     image = Column(String(MEDIUM_STR_LEN))
-    owner = Column(String(MEDIUM_STR_LEN))
-    owner_url = Column(String(MEDIUM_STR_LEN))
-    ticket_url = Column(String(MEDIUM_STR_LEN))
 
     event_type = Column(String(MEDIUM_STR_LEN))
 
     __mapper_args__ = {
         'polymorphic_on': event_type,
-        'polymorphic_identity': 'event'
+        'polymorphic_identity': DEFAULT_EVENT_TYPE
     }
 
     def __repr__(self):
@@ -68,7 +69,17 @@ class Show(Event):
             self.youtube_url = self.title
 
     __mapper_args__ = {
-        'polymorphic_identity': 'show'
+        'polymorphic_identity': SHOW_EVENT_TYPE
+    }
+
+
+class FacebookEvent(Event):
+    owner = Column(String(MEDIUM_STR_LEN))
+    owner_url = Column(String(MEDIUM_STR_LEN))
+    ticket_url = Column(String(MEDIUM_STR_LEN))
+
+    __mapper_args__ = {
+        'polymorphic_identity': FACEBOOK_EVENT_TYPE
     }
 
 
@@ -76,3 +87,4 @@ engine = create_engine(DB_CONNECTION_STRING)
 Base.metadata.create_all(engine)
 
 Session = sessionmaker(bind=engine)
+
