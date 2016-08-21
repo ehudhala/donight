@@ -51,7 +51,8 @@ class Event(Base):
 
     def to_dict(self):
         return {column.name: self.get_attr_to_dict(column.name)
-                for column in self.__table__.columns}
+                for column in self.__table__.columns
+                if hasattr(self, column.name)}
 
     def get_attr_to_dict(self, attr_name):
         attr_serializer = self.__serialize_attr_to_dict.get(attr_name, unicode)
