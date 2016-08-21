@@ -5,9 +5,8 @@ from itertools import chain
 import requests
 from bs4 import BeautifulSoup
 from dateutil.relativedelta import relativedelta
-
 from donight.event_finder.scrapers.base_scraper import Scraper
-from donight.events import Event
+from donight.events import Show
 from donight.utils import to_local_timezone
 
 TIME_SEPERATOR = ':'
@@ -79,7 +78,7 @@ class OzenBarScraper(Scraper):
         :param month: The month the event is held in.
         :type month: int
         :return: An event containing all the information from the element.
-        :rtype: Event
+        :rtype: donight.events.Event
         """
         try:
             title = event_element.find('h2').text
@@ -93,8 +92,8 @@ class OzenBarScraper(Scraper):
                                   "the OzenBar event element is: \n%s\nException:", year, month, event_element.prettify())
             return None
 
-        return Event(title=title, start_time=start_time, location=self.OZEN_BAR_LOCATION,
-                     price=price, url=url, description=description, image=image, owner=None, owner_url=None)
+        return Show(title=title, start_time=start_time, location=self.OZEN_BAR_LOCATION,
+                    price=price, url=url, description=description, image=image)
 
     def parse_time(self, event_element, year, month):
         """
@@ -109,8 +108,8 @@ class OzenBarScraper(Scraper):
         :type year: int
         :param month: The month the event is held in.
         :type month: int
-        :return:
-        :rtype:
+        :return: A datetime representing the time of the event.
+        :rtype: dt.datetime
         """
         date_element = event_element.find('div', {'class': 'date'})
         day = int(re.findall(NUMBER_REGEX, date_element.text)[0])

@@ -2,9 +2,8 @@ import datetime as dt
 import json
 
 import requests
-
 from donight.event_finder.scrapers.base_scraper import Scraper
-from donight.events import Event
+from donight.events import Show
 from donight.utils import jsonp_loads
 
 
@@ -43,14 +42,14 @@ class ShowsAroundScraper(Scraper):
         :param show: A dict representing an event from the ShowsAround api.
         :type show: dict
         :return: An event containing the information from the ShowsAround event.
-        :rtype: Event
+        :rtype: donight.events.Event
         """
         try:
             if all([not value or value in self.MEANINGLESS_VALUES for value in show.values()]):
                 return None
 
             start_time = dt.datetime.strptime(show['date'] + ' ' + show['time'], self.TIME_FORMAT)
-            return Event(title=show['artist'],
+            return Show(title=show['artist'],
                          start_time=start_time,
                          location=show['location'],
                          # ShowsAround hold empty prices for free.

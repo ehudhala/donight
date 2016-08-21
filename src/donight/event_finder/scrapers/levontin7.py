@@ -5,7 +5,7 @@ import time
 import requests
 
 from donight.event_finder.scrapers.base_scraper import Scraper
-from donight.events import Event
+from donight.events import Show
 from donight.utils import SECONDS_IN_MONTH, SECONDS_IN_YEAR, find, to_local_timezone
 
 
@@ -18,7 +18,7 @@ class Levontin7Scraper(Scraper):
     EVENTS_PARAMS = {'rhc_action': 'get_calendar_events',
                      'post_type': 'events'}
 
-    LEVONTIN_LOCATION = u'\u05dc\u05d1\u05d5\u05e0\u05d8\u05d9\u05df 7'
+    LEVONTIN_LOCATION = u'\u05dc\u05d1\u05d5\u05e0\u05d8\u05d9\u05df7'
 
     TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
     SHEKEL_CHAR = u'\u20aa'
@@ -45,7 +45,7 @@ class Levontin7Scraper(Scraper):
         :param levontin_event: A dict representing an event from the Levontin api.
         :type levontin_event: dict
         :return: An event containing the information from the levontin event.
-        :rtype: Event
+        :rtype: donight.events.Event
         """
         try:
             start_time = self.levontin_time_to_time(levontin_event['start'])
@@ -53,16 +53,14 @@ class Levontin7Scraper(Scraper):
             description = self.remove_line_breaks_from_description(levontin_event['description'])
             price = self.get_price_from_description(description)
             image = levontin_event['image'][0] if levontin_event['image'] else ''
-            return Event(title=levontin_event['title'],
-                         start_time=start_time,
-                         end_time=end_time,
-                         location=self.LEVONTIN_LOCATION,
-                         price=price,
-                         url=levontin_event['url'],
-                         description=description,
-                         image=image,
-                         owner=None,
-                         owner_url=None)
+            return Show(title=levontin_event['title'],
+                        start_time=start_time,
+                        end_time=end_time,
+                        location=self.LEVONTIN_LOCATION,
+                        price=price,
+                        url=levontin_event['url'],
+                        description=description,
+                        image=image)
         except Exception:
             self.logger.exception("Failed turning a Levontin event into an event, "
                                   "the Levontin event is: \n%s\nException:", json.dumps(levontin_event, indent=4))
