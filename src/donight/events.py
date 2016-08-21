@@ -58,6 +58,20 @@ class Event(Base):
         return attr_serializer(attr) if attr is not None else ''
 
 
+class Show(Event):
+    youtube_url = Column(String(MEDIUM_STR_LEN))
+
+    def __init__(self, *args, **kwargs):
+        super(Show, self).__init__(*args, **kwargs)
+
+        if not self.youtube_url:
+            self.youtube_url = self.title
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'show'
+    }
+
+
 engine = create_engine(DB_CONNECTION_STRING)
 Base.metadata.create_all(engine)
 
