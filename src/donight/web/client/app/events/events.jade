@@ -1,31 +1,37 @@
-div(ng-repeat="event in eventsVm.filteredEvents(eventsVm.events)")
-    .row
-        .col.s12
-            h4
-                a.teal-text(ng-href="{{ event.url }}", target="_blank") {{ event.title }}
+.row
+    .col.s12.m6(ng-repeat="event in eventsVm.filteredEvents(eventsVm.events)")
+        .card
+            .card-image.waves-effect.waves-block.waves-light
+                img.activator(ng-src="{{ event.image ? event.image : '/static/images/default_event_image.jpg' }}")
 
-    .row
-        .col.s12.m4.push-m8
-            .col.s3.push-s9
-                p איפה:
-            .col.s9.pull-s3
-                p {{ event.location }}
-        .col.s12.m4
-            .col.s3.push-s9
-                p מתי:
-            .col.s9.pull-s3
-                p {{ event.start_time | amCalendar:Date():{'sameElse': 'MM/DD/YYYY בשעה HH:mm'} }}
-        .col.s12.m4.pull-m8
-            .col.s3.push-s9
-                p מחיר:
-            .col.s9.pull-s3
-                p {{ eventsVm.priceDisplay(event) }}
+            .card-content
+                a(ng-href="{{ event.url }}", target="_blank")
+                    span.my-card-title.teal-text {{ event.title }}
+                .row
+                    .col.s12
+                        .col.s3.push-s9
+                            p איפה:
+                        .col.s9.pull-s3
+                            p {{ event.location }}
+                    .col.s12
+                        .col.s3.push-s9
+                            p מתי:
+                        .col.s9.pull-s3
+                            p {{ event.start_time | amCalendar:Date():{'sameElse': 'MM/DD/YYYY בשעה HH:mm'} }}
+                    .col.s12
+                        .col.s3.push-s9
+                            p מחיר:
+                        .col.s9.pull-s3
+                            p {{ eventsVm.priceDisplay(event) }}
+                i.material-icons.activator.pointer-cursor expand_more
 
-    .row
-        .col.s12.m9.push-m3
-            hm-read-more(hm-text="{{ event.description }}", hm-limit="200",
-                hm-more-text="קרא עוד", hm-less-text="פחות", hm-link-class="teal-text")
-        .col.s12.m3.pull-m9
-            img.img-rounded.responsive-img(ng-src="{{ event.image }}")
-
+            .card-reveal
+                .row
+                    span.card-title
+                        i.material-icons.right close
+                    a(ng-href="{{ event.url }}", target="_blank")
+                        span.my-card-title.teal-text {{ event.title }}
+                .row
+                    hm-read-more(hm-text="{{ event.description }}", hm-limit="200",
+                        hm-more-text="קרא עוד", hm-less-text="פחות", hm-link-class="teal-text")
 
