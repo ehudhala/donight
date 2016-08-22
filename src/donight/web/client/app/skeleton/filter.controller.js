@@ -14,7 +14,7 @@
         });
 
         filterVm.calendarDay = function(day) {
-            return day.calendar(moment(), {sameDay: 'היום', nextDay: 'מחר', nextWeek: 'dddd'});
+            return day.calendar(moment(), {sameDay: 'הערב', nextDay: 'מחר', nextWeek: 'dddd'});
         };
 
         filterVm.filterDay = function(day) {
