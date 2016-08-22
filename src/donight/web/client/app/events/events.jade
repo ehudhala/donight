@@ -7,7 +7,7 @@
             .card-content
                 a(ng-href="{{ event.url }}", target="_blank")
                     span.my-card-title.teal-text {{ event.title }}
-                .row
+                .row.no-bottom-margin
                     .col.s12
                         .col.s3.push-s9
                             p איפה:
@@ -23,7 +23,7 @@
                             p מחיר:
                         .col.s9.pull-s3
                             p {{ eventsVm.priceDisplay(event) }}
-                i.material-icons.activator.pointer-cursor expand_more
+                    i.material-icons.activator.pointer-cursor.left expand_more
 
             .card-reveal
                 .row
