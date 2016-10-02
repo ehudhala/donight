@@ -1,0 +1,18 @@
+nav.purple
+    .nav-wrapper
+        a.brand-logo.right(href='/')
+            |  Donight
+            i.material-icons.right event
+
+        .filter(ng-controller="FilterController as filterVm")
+            a#filter-button.left(data-activates='filter', dropdown='', data-hover='true')
+                i.material-icons filter_list
+            ul#filter.dropdown-content
+                li(ng-repeat="day in filterVm.week")
+                    a.waves-effect.waves-light(ng-click="filterVm.filterDay(day)")
+                        | {{ filterVm.calendarDay(day) }}
+
+.container
+    div#wrapper(ui-view)
+
+

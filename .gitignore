@@ -89,10 +89,13 @@ crashlytics-build.properties
 fabric.properties
 
 # Customized
-src/donight/db.sqlite3
 src/donight/log.txt
 src/donight/scrapers_log.txt
 src/donight/externals_log.txt
 src/donight/scripts/events.xlsx
 
 src/donight/config/personal-data/
+src/donight/web/client/node_modules/
+src/donight/web/client/static/bower_components/
+src/donight/web/client/static/build
+src/donight/web/client/static/compile

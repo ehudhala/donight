@@ -22,7 +22,7 @@ class OzenBarScraper(Scraper):
     """
     EVENTS_URL = 'http://www.ozenbar.com/wp-admin/admin-ajax.php'
 
-    OZEN_BAR_LOCATION = 'OzenBar'
+    OZEN_BAR_LOCATION = u'\u05d0\u05d5\u05d6\u05df\u05d1\u05e8'
 
     def scrape(self):
         """
@@ -38,7 +38,7 @@ class OzenBarScraper(Scraper):
         # TODO: The OzenBar website has a bug, that doesn't account for the year in their calendar,
         # TODO: we should only send requests for this year, but then what would we do on the end of december ?
         dates_in_surrounding_months = [today + relativedelta(months=diff)
-                                       for diff in xrange(-3, 13)]
+                                       for diff in xrange(-1, 5)]
 
         return list(chain.from_iterable([self.get_events_for_month(date.year, date.month)
                                          for date in dates_in_surrounding_months
@@ -94,7 +94,7 @@ class OzenBarScraper(Scraper):
             return None
 
         return Event(title=title, start_time=start_time, location=self.OZEN_BAR_LOCATION,
-                     price=price, url=url, description=description, image=image)
+                     price=price, url=url, description=description, image=image, owner=None, owner_url=None)
 
     def parse_time(self, event_element, year, month):
         """
@@ -120,3 +120,4 @@ class OzenBarScraper(Scraper):
         hour, minute = map(int, full_time.split(TIME_SEPERATOR))
 
         return to_local_timezone(dt.datetime(year, month, day, hour, minute))
+

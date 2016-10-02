@@ -34,15 +34,15 @@ LOGGING_CONFIG = {
             'maxBytes': 100000,
             'backupCount': 1,
         },
-        'externals_file': {
-            'level': 'DEBUG',
-            'formatter': 'standard',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': EXTERNALS_LOG_PATH,
-            'encoding': 'utf8',
-            'maxBytes': 100000,
-            'backupCount': 1,
-        }
+        # 'externals_file': {
+        #     'level': 'DEBUG',
+        #     'formatter': 'standard',
+        #     'class': 'logging.handlers.RotatingFileHandler',
+        #     'filename': EXTERNALS_LOG_PATH,
+        #     'encoding': 'utf8',
+        #     'maxBytes': 100000,
+        #     'backupCount': 1,
+        # }
     },
     'loggers': {
         'donight': {
@@ -55,9 +55,9 @@ LOGGING_CONFIG = {
             'level': 'DEBUG',
             'propagate': False
         },
-        '': {
-            'handlers': ['externals_file'],
-            'level': 'DEBUG',
-        },
+        # '': {
+        #     'handlers': ['externals_file'],
+        #     'level': 'DEBUG',
+        # },
     }
 }
