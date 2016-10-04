@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 
 from donight.config.consts import DB_CONNECTION_STRING
 
-DEFAULT_EVENT_TYPE_NAME = 'event'
+DEFAULT_EVENT_TYPE_NAME = 'unknown'
 MUSIC_SHOW_EVENT_TYPE_NAME = 'music_show'
 LECTURE_EVENT_TYPE_NAME = 'lecture'
 
@@ -64,6 +64,12 @@ class Event(Base):
         attr = getattr(self, attr_name)
         return attr_serializer(attr) if attr is not None else ''
 
+    @property
+    def owner_url(self):
+        if self.owner_id:
+            return "https://www.facebook.com/" + self.owner_id
+        return ''
+
 
 class MusicShow(Event):
     youtube_url = Column(String(MEDIUM_STR_LEN))
@@ -110,10 +116,6 @@ class FacebookGroup(Base):
             session.add(cls(owner_id=owner_id, owner_name=owner_name))
             session.commit()
 
-    @property
-    def owner_url(self):
-        return "https://www.facebook.com/" + self.owner_id
-
 
 EVENT_TYPES = [Event, MusicShow, Lecture]
 EVENT_TYPE_NAME_TO_TYPE = {event_type.__mapper_args__['polymorphic_identity']: event_type
@@ -131,3 +133,4 @@ Base.metadata.create_all(engine)
 
 Session = sessionmaker(bind=engine)
 session = Session()
+
