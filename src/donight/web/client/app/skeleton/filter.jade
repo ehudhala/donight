@@ -1,0 +1,39 @@
+ul#filter-side-nav.side-nav(ng-controller='FilterController as filterVm')
+    li
+        header סינון
+    li
+        .divider
+
+    li.no-padding
+        ul.collapsible
+            li
+                a.collapsible-header
+                    | סוג אירוע
+                    i.material-icons.right-icon music_note
+                .collapsible-body
+                    ul
+                        li(ng-repeat='eventType in filterVm.allEventTypes')
+                            a.waves-effect.waves-light(ng-click="filterVm.filterType(eventType.name)")
+                                | {{ eventType.displayName }}
+                            // TODO: filter by many types (radio-buttons)
+
+            li
+                a.collapsible-header
+                    | מתי ?
+                    i.material-icons.right-icon access_time
+                .collapsible-body
+                    ul
+                        li(ng-repeat="day in filterVm.week")
+                            a.waves-effect.waves-light(ng-click="filterVm.filterDay(day)")
+                                | {{ filterVm.calendarDay(day) }}
+                        // TODO: filter by selected date.
+                        //li
+                        //    label(for='filter-date') בחר תאריך
+                        //    input#filter-date(
+                        //        input-date='',
+                        //        type='text',
+                        //        ng-model='filterVm.filterDate',
+                        //        format='yyyy-mm-dd',
+                        //        on-set='filterVm.filterDay(filterVm.filterDate)',
+                        //        container='.container')
+

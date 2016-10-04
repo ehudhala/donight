@@ -2,12 +2,14 @@
     'use strict';
 
     angular
-        .module('donight.filter', [])
+        .module('donight.filter')
         .controller('FilterController', FilterController);
 
     /* @ngInject */
-    function FilterController($state) {
+    function FilterController($state, EventTypes) {
         var filterVm = this;
+
+        filterVm.allEventTypes = EventTypes.query();
 
         filterVm.week = _.map(_.range(7), function(diff) {
             return moment().add(diff, 'day')
@@ -18,7 +20,11 @@
         };
 
         filterVm.filterDay = function(day) {
-            $state.go('events.filter', {startDate: day.format('YYYY-MM-DD')});
+            $state.go('events.filter', {from: day.format('YYYY-MM-DD')});
+        };
+
+        filterVm.filterType = function(eventType) {
+            $state.go('events.filter', {eventTypes: [eventType]});
         };
     }
 

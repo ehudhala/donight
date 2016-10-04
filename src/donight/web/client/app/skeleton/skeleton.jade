@@ -4,15 +4,13 @@ nav.purple
             |  Donight
             i.material-icons.right event
 
-        .filter(ng-controller="FilterController as filterVm")
-            a#filter-button.left(data-activates='filter', dropdown='', data-hover='true')
-                i.material-icons filter_list
-            ul#filter.dropdown-content
-                li(ng-repeat="day in filterVm.week")
-                    a.waves-effect.waves-light(ng-click="filterVm.filterDay(day)")
-                        | {{ filterVm.calendarDay(day) }}
+        a#filter-button.left(
+                data-activates='filter-side-nav', data-sidenav='left',
+                data-menuwidth='500', data-closeonclick='true')
+            i.material-icons menu
+
+include filter.jade
 
 .container
     div#wrapper(ui-view)
-
 

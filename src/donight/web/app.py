@@ -7,7 +7,7 @@ from flask.helpers import send_from_directory
 from sqlalchemy import func
 
 from donight.config.consts import ROOT_DIR, DEBUG
-from donight.events import Session, Event, session
+from donight.events import Session, Event, session, EVENT_TYPE_NAMES, EVENT_TYPE_NAME_TO_TYPE
 
 STATIC_FOLDER = os.path.join(ROOT_DIR, 'web', 'client', 'static')
 
@@ -42,6 +42,12 @@ def get_all_events():
         .filter(func.date(Event.start_time) >= datetime.datetime.now().date())
         .order_by(Event.start_time).all())
     return JsonResponse([event.to_dict() for event in all_events])
+
+
+@app.route('/api/event_types/all')
+def get_event_types():
+    return JsonResponse([{'name': type_name, 'displayName': event_type.DISPLAY_NAME}
+                         for type_name, event_type in EVENT_TYPE_NAME_TO_TYPE.iteritems()])
 
 
 if __name__ == '__main__':

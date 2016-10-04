@@ -27,9 +27,15 @@
         };
 
         eventsVm.filteredEvents = function(events) {
+            console.log($state.params);
             return _.filter(events, function(event) {
-                return $state.params.startDate === undefined ||
-                       event.start_time.isSameOrAfter(moment.utc($state.params.startDate), 'day');
+                var dateFilter = !$state.params.from ||
+                       event.start_time.isSameOrAfter(moment.utc($state.params.from), 'day');
+
+                var typeFilter = !$state.params.eventTypes ||
+                        _.contains($state.params.eventTypes, event.event_type_name);
+
+                return dateFilter && typeFilter;
             });
         };
     }

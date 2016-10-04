@@ -1,3 +1,4 @@
+# encoding: utf8
 import datetime
 
 from sqlalchemy import create_engine, Column, Integer, String, Text, Sequence, DateTime
@@ -25,6 +26,8 @@ class Event(Base):
     (Scrapers only upload to the db, and any application on the event reads from the db.
     """
     __tablename__ = 'events'
+
+    DISPLAY_NAME = u'לא ידוע'
 
     id = Column(Integer, Sequence('event_id_sequence'), primary_key=True)
     title = Column(String(MEDIUM_STR_LEN))
@@ -72,6 +75,8 @@ class Event(Base):
 
 
 class MusicShow(Event):
+    DISPLAY_NAME = u'הופעות מוזיקה'
+
     youtube_url = Column(String(MEDIUM_STR_LEN))
 
     def __init__(self, *args, **kwargs):
@@ -86,6 +91,8 @@ class MusicShow(Event):
 
 
 class Lecture(Event):
+    DISPLAY_NAME = u'הרצאות'
+
     __mapper_args__ = {
         'polymorphic_identity': LECTURE_EVENT_TYPE_NAME
     }

@@ -23,7 +23,13 @@
             {
                 state: 'events.filter',
                 config: {
-                    url: 'events/:startDate',
+                    url: 'events?from&eventTypes',
+                    params: {
+                        from: null,
+                        eventTypes: {
+                            array: true
+                        }
+                    },
                     templateUrl: '/static/build/events/events.html',
                     controller: 'EventsController as eventsVm'
                 }
