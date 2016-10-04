@@ -145,7 +145,7 @@ class EventFinder(object):
         :param event: An event to get the new information from.
         :type event: Event
         """
-        for field_name in get_model_fields(Event, ['id']):
+        for field_name in get_model_fields(event.__class__, ['id']):
             new_field_value = getattr(event, field_name)
             setattr(existing_event, field_name, new_field_value)
 

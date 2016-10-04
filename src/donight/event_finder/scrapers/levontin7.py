@@ -5,7 +5,7 @@ import time
 import requests
 
 from donight.event_finder.scrapers.base_scraper import Scraper
-from donight.events import Show
+from donight.events import MusicShow
 from donight.utils import SECONDS_IN_MONTH, SECONDS_IN_YEAR, find, to_local_timezone
 
 
@@ -53,14 +53,14 @@ class Levontin7Scraper(Scraper):
             description = self.remove_line_breaks_from_description(levontin_event['description'])
             price = self.get_price_from_description(description)
             image = levontin_event['image'][0] if levontin_event['image'] else ''
-            return Show(title=levontin_event['title'],
-                        start_time=start_time,
-                        end_time=end_time,
-                        location=self.LEVONTIN_LOCATION,
-                        price=price,
-                        url=levontin_event['url'],
-                        description=description,
-                        image=image)
+            return MusicShow(title=levontin_event['title'],
+                             start_time=start_time,
+                             end_time=end_time,
+                             location=self.LEVONTIN_LOCATION,
+                             price=price,
+                             url=levontin_event['url'],
+                             description=description,
+                             image=image)
         except Exception:
             self.logger.exception("Failed turning a Levontin event into an event, "
                                   "the Levontin event is: \n%s\nException:", json.dumps(levontin_event, indent=4))

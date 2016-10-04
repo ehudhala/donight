@@ -2,7 +2,8 @@ import os
 
 from donight.utils import SECONDS_IN_DAY
 
-DEBUG = os.environ.get('DEBUG', 'true').lower() == 'true'
+DEBUG = True
+DEBUG = os.environ.get('DEBUG', str(DEBUG)).lower() == str(True).lower()
 
 ROOT_DIR = os.path.dirname(os.path.dirname(__file__))
 

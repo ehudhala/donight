@@ -4,11 +4,10 @@ import datetime
 
 from donight.applications.events_to_excel import EventsExcel
 from donight.event_finder import EventFinder
-from donight.events import Session, Event
+from donight.events import Session, Event, session
 
 
 def load_events_to_excel(events_file_name):
-    session = Session()
     events = session.query(Event).filter(Event.start_time >= datetime.datetime.now()).all()
     EventsExcel().create_excel(events, events_file_name)
 

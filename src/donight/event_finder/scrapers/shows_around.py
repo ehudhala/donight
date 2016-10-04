@@ -3,7 +3,7 @@ import json
 
 import requests
 from donight.event_finder.scrapers.base_scraper import Scraper
-from donight.events import Show
+from donight.events import MusicShow
 from donight.utils import jsonp_loads
 
 
@@ -49,14 +49,14 @@ class ShowsAroundScraper(Scraper):
                 return None
 
             start_time = dt.datetime.strptime(show['date'] + ' ' + show['time'], self.TIME_FORMAT)
-            return Show(title=show['artist'],
-                         start_time=start_time,
-                         location=show['location'],
-                         # ShowsAround hold empty prices for free.
+            return MusicShow(title=show['artist'],
+                             start_time=start_time,
+                             location=show['location'],
+                             # ShowsAround hold empty prices for free.
                          price=show['price'] if show['price'] else '0',
-                         description=show['details'],
-                         image=self.get_show_image(show, artists),
-                         url=show['link'])
+                             description=show['details'],
+                             image=self.get_show_image(show, artists),
+                             url=show['link'])
         except Exception:
             self.logger.exception("Failed turning a ShowsAround event into an event, "
                                   "the ShowsAround event is: \n%s\nException:", json.dumps(show, indent=4))

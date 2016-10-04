@@ -6,7 +6,7 @@ import requests
 from bs4 import BeautifulSoup
 from dateutil.relativedelta import relativedelta
 from donight.event_finder.scrapers.base_scraper import Scraper
-from donight.events import Show
+from donight.events import MusicShow
 from donight.utils import to_local_timezone
 
 TIME_SEPERATOR = ':'
@@ -92,8 +92,8 @@ class OzenBarScraper(Scraper):
                                   "the OzenBar event element is: \n%s\nException:", year, month, event_element.prettify())
             return None
 
-        return Show(title=title, start_time=start_time, location=self.OZEN_BAR_LOCATION,
-                    price=price, url=url, description=description, image=image)
+        return MusicShow(title=title, start_time=start_time, location=self.OZEN_BAR_LOCATION,
+                         price=price, url=url, description=description, image=image)
 
     def parse_time(self, event_element, year, month):
         """

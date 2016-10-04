@@ -6,9 +6,9 @@ from sqlalchemy.orm import sessionmaker
 
 from donight.config.consts import DB_CONNECTION_STRING
 
-DEFAULT_EVENT_TYPE = 'event'
-SHOW_EVENT_TYPE = 'show'
-FACEBOOK_EVENT_TYPE = 'facebook_event'
+DEFAULT_EVENT_TYPE_NAME = 'event'
+MUSIC_SHOW_EVENT_TYPE_NAME = 'music_show'
+LECTURE_EVENT_TYPE_NAME = 'lecture'
 
 MEDIUM_STR_LEN = 1024
 
@@ -36,11 +36,16 @@ class Event(Base):
     description = Column(Text())
     image = Column(String(MEDIUM_STR_LEN))
 
-    event_type = Column(String(MEDIUM_STR_LEN))
+    # Facebook
+    owner_name = Column(String(MEDIUM_STR_LEN))
+    owner_id = Column(Integer)
+    ticket_url = Column(String(MEDIUM_STR_LEN))
+
+    event_type_name = Column(String(MEDIUM_STR_LEN))
 
     __mapper_args__ = {
-        'polymorphic_on': event_type,
-        'polymorphic_identity': DEFAULT_EVENT_TYPE
+        'polymorphic_on': event_type_name,
+        'polymorphic_identity': DEFAULT_EVENT_TYPE_NAME
     }
 
     def __repr__(self):
@@ -60,32 +65,69 @@ class Event(Base):
         return attr_serializer(attr) if attr is not None else ''
 
 
-class Show(Event):
+class MusicShow(Event):
     youtube_url = Column(String(MEDIUM_STR_LEN))
 
     def __init__(self, *args, **kwargs):
-        super(Show, self).__init__(*args, **kwargs)
+        super(MusicShow, self).__init__(*args, **kwargs)
 
         if not self.youtube_url:
             self.youtube_url = self.title
 
     __mapper_args__ = {
-        'polymorphic_identity': SHOW_EVENT_TYPE
+        'polymorphic_identity': MUSIC_SHOW_EVENT_TYPE_NAME
     }
 
 
-class FacebookEvent(Event):
-    owner = Column(String(MEDIUM_STR_LEN))
-    owner_url = Column(String(MEDIUM_STR_LEN))
-    ticket_url = Column(String(MEDIUM_STR_LEN))
-
+class Lecture(Event):
     __mapper_args__ = {
-        'polymorphic_identity': FACEBOOK_EVENT_TYPE
+        'polymorphic_identity': LECTURE_EVENT_TYPE_NAME
     }
+
+
+class FacebookGroup(Base):
+    __tablename__ = 'facebook_groups'
+
+    owner_id = Column(Integer, primary_key=True)
+    owner_name = Column(String(MEDIUM_STR_LEN))
+    type_name = Column(String(MEDIUM_STR_LEN))
+
+    @classmethod
+    def get_group(cls, owner_id):
+        return session.query(cls).filter(cls.owner_id == owner_id).first()
+
+    @classmethod
+    def get_event_type(cls, owner_id):
+        group = cls.get_group(owner_id)
+        if group is None:
+            return Event
+        return get_event_type_by_type_name(group.type_name)
+
+    @classmethod
+    def create_if_doesnt_exist(cls, owner_id, owner_name):
+        group = cls.get_group(owner_id)
+        if group is None:
+            session.add(cls(owner_id=owner_id, owner_name=owner_name))
+            session.commit()
+
+    @property
+    def owner_url(self):
+        return "https://www.facebook.com/" + self.owner_id
+
+
+EVENT_TYPES = [Event, MusicShow, Lecture]
+EVENT_TYPE_NAME_TO_TYPE = {event_type.__mapper_args__['polymorphic_identity']: event_type
+                           for event_type in EVENT_TYPES}
+EVENT_TYPE_NAMES = EVENT_TYPE_NAME_TO_TYPE.keys()
+
+def get_event_type_by_type_name(event_type_name):
+    return EVENT_TYPE_NAME_TO_TYPE.get(event_type_name, Event)
 
 
 engine = create_engine(DB_CONNECTION_STRING)
+# Event.__table__.drop(engine, checkfirst=True)
+# FacebookGroup.__table__.drop(engine, checkfirst=True)
 Base.metadata.create_all(engine)
 
 Session = sessionmaker(bind=engine)
-
+session = Session()
