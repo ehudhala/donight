@@ -5,8 +5,7 @@ from logging import getLogger
 from sqlalchemy import func
 
 from donight.config.consts import TIME_BETWEEN_INDEXES
-from donight.event_finder.scrapers import get_all_scrapers
-from donight.event_finder.scrapers.base_scraper import Scraper
+from donight.event_finder.scrapers import Scraper, get_all_scrapers
 from donight.events import Session, Event
 from donight.utils import get_model_fields
 
@@ -79,13 +78,10 @@ class EventFinder(object):
         events = []
 
         try:
-            for event in scraper.scrape():
-                events.append(event)
-
+            events.extend([event for event in scraper.scrape() if event and event.title != ''])
         except Exception:
             self.logger.exception("Failed scraping events from %s. Still scraping from other sources. Exception:",
                                   scraper.get_scraping_source())
-
         finally:
             self.logger.info('Scraped %d events from %s', len(events), scraper.get_scraping_source())
 

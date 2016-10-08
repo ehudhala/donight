@@ -1,0 +1,23 @@
+{
+  "name": "Donight",
+  "description": "Events :)",
+  "author": "Donight",
+  "dependencies": {
+    "jquery": "~2.2.3",
+    "underscore": "~1.8.3",
+    "font-awesome": "~4.5.0",
+    "angular": "~1.5.x",
+    "angular-resource": "~1.5.x",
+    "angular-animate": "~1.5.x",
+    "angular-sanitize": "~1.5.x",
+    "angular-ui-router": "~0.2.18",
+    "angular-ui-select": "~0.16.1",
+    "angular-smart-table": "~2.1.8",
+    "angular-moment": "~1.0.0",
+    "angular-read-more": "~1.0.5",
+    "materialize": "~0.97.7",
+    "angular-materialize": "~0.1.9"
+  },
+  "private": true,
+  "license": "MIT"
+}

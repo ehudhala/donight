@@ -1,0 +1,73 @@
+include mixins.jade
+
+doctype html
+
+html(lang="en", ng-app="donight")
+    head
+        meta(charset="utf-8")
+        title  Donight
+        
+        base(href="/")
+        meta(name="viewport", content="width=device-width, initial-scale=1.0")
+        meta(name="description", content="Events index")
+        meta(name="author", content="ehudhala")
+
+        link(rel="apple-touch-icon", sizes="180x180", href="/static/icons/apple-touch-icon.png")
+        link(rel="icon", type="image/png", href="/static/icons/favicon-32x32.png", sizes="32x32")
+        link(rel="icon", type="image/png", href="/static/icons/favicon-16x16.png", sizes="16x16")
+        link(rel="manifest", href="/static/icons/manifest.json")
+        link(rel="mask-icon", href="/static/icons/safari-pinned-tab.svg", color="#9c27b0")
+        link(rel="shortcut icon", href="/static/icons/favicon.ico")
+        meta(name="apple-mobile-web-app-title", content="Donight")
+        meta(name="application-name", content="Donight")
+        meta(name="msapplication-config", content="/static/icons/browserconfig.xml")
+        meta(name="theme-color", content="#9c27b0")
+
+        +script("/static/bower_components/jquery/dist/jquery.min.js")
+
+        +style("/static/bower_components/font-awesome/css/font-awesome.min.css")
+
+        +script("/static/bower_components/angular/angular.js")
+        +script("/static/bower_components/angular-resource/angular-resource.min.js")
+        +script("/static/bower_components/angular-animate/angular-animate.min.js")
+        +script("/static/bower_components/angular-sanitize/angular-sanitize.min.js")
+
+        +script("/static/bower_components/angular-ui-router/release/angular-ui-router.min.js")
+
+        +style("/static/bower_components/angular-ui-select/dist/select.min.css")
+        +script("/static/bower_components/angular-ui-select/dist/select.min.js")
+
+        +script("/static/bower_components/underscore/underscore-min.js")
+
+        +script("/static/bower_components/moment/min/moment.min.js")
+        +script("/static/bower_components/moment/locale/he.js")
+        +script("/static/bower_components/angular-moment/angular-moment.js")
+
+        +script("/static/bower_components/angular-read-more/dist/readmore.min.js")
+
+        link(href='https://fonts.googleapis.com/icon?family=Material+Icons', rel='stylesheet')
+        +style('/static/bower_components/materialize/dist/css/materialize.min.css')
+        +script("/static/bower_components/materialize/dist/js/materialize.min.js")
+        +script("/static/bower_components/angular-materialize/src/angular-materialize.js")
+
+        +style("/static/build/app.css")
+        +script("/static/build/app.js")
+
+        script.
+            (function (i, s, o, g, r, a, m) {
+                i['GoogleAnalyticsObject'] = r;
+                i[r] = i[r] || function () {
+                            (i[r].q = i[r].q || []).push(arguments)
+                        }, i[r].l = 1 * new Date();
+                a = s.createElement(o), m = s.getElementsByTagName(o)[0];
+                a.async = 1;
+                a.src = g;
+                m.parentNode.insertBefore(a, m)
+            })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
+            ga('create', 'UA-82754753-1', 'auto');
+            ga('send', 'pageview');
+
+    body(ng-cloak)
+        include skeleton/skeleton.jade
+
+

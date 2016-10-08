@@ -1,3 +1,4 @@
+import json
 import time
 
 import dateutil.tz
@@ -61,3 +62,17 @@ def get_model_fields(model, excluded_fields=list()):
     """
     return [unicode(column.key) for column in inspect(model).mapper.columns
             if column.key not in excluded_fields]
+
+
+def jsonp_loads(jsonp):
+    """
+    Gets a jsonp string, representing a json object with padding
+    (Used for client side hacks...), and returns the json objects.
+    :param jsonp: A string containing a json object with padding.
+    :type jsonp: str
+    :return: The json object parsed.
+    :rtype: dict | list | str
+    """
+    json_without_padding = jsonp[jsonp.index("(") + 1: jsonp.rindex(")")]
+    return json.loads(json_without_padding)
+

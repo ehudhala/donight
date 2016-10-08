@@ -18,7 +18,7 @@ class Levontin7Scraper(Scraper):
     EVENTS_PARAMS = {'rhc_action': 'get_calendar_events',
                      'post_type': 'events'}
 
-    LEVONTIN_LOCATION = 'Levontin 7'
+    LEVONTIN_LOCATION = u'\u05dc\u05d1\u05d5\u05e0\u05d8\u05d9\u05df 7'
 
     TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
     SHEKEL_CHAR = u'\u20aa'
@@ -81,7 +81,7 @@ class Levontin7Scraper(Scraper):
         """
         # TODO: refactor !
         if any([free_string in description for free_string in self.FREE_STRINGS]):
-            return 'Free !'
+            return '0'
 
         if self.SHEKEL_CHAR in description:
             description_words = description.split()
@@ -120,3 +120,4 @@ class Levontin7Scraper(Scraper):
         :rtype: datetime.datetime
         """
         return to_local_timezone(dt.datetime.strptime(levontin_time, self.TIME_FORMAT))
+
