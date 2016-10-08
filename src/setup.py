@@ -8,9 +8,9 @@ setup(
                       'requests',
                       'beautifulsoup4',
                       'lxml',
-                      'pyexcelerate',
+                      'openpyxl',
                       'python-dateutil',
                       'facebook-sdk',
-                      'selenium']
+                      'selenium==2.53.2']
 )
 
