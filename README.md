@@ -26,7 +26,7 @@ Additional setup is required to scrape facebook users:
     [compatibility issues](http://www.seleniumhq.org/about/platforms.jsp) between versions.
     Donight has been tested with [Firefox 46.0.1](https://ftp.mozilla.org/pub/firefox/releases/46.0.1/) and 
     selenium 2.53.2. Use `pip install selenium==2.53.2` to install that version.
-2. Configure the scraping in src/donight/config/facebook_scraping_config.py. You'll need to specify the scraped
+2. Configure the scraping in `src/donight/config/facebook_scraping_config.py`. You'll need to specify the scraped
 user email, password, the scraped pages URLs, etc. - it's all documented in that page.
 4. Configure the scraped user.
     1. Manually login to the scraped user.
